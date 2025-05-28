@@ -53,5 +53,7 @@ public class Script2Task : MonoBehaviour
         {
             Debug.LogError("Player_Controller non trovato! Assicurati che esista nella scena.");
         }
+        mainCamera.enabled = true;
+        secondCamera.enabled = false;
     }
 }

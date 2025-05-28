@@ -17,7 +17,7 @@ public class Script1Task : MonoBehaviour
     {
         if (playerController.isCollidingWithTask)
         {
-            if (Input.GetKeyUp(KeyCode.E)) 
+            if (Input.GetKeyDown(KeyCode.E)) 
             {
                 if (hasPlayed == false)
                 {
