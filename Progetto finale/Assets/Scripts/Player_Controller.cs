@@ -3,6 +3,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Image = Microsoft.Unity.VisualStudio.Editor.Image;
 
 public class Player_Controller : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class Player_Controller : MonoBehaviour
     [SerializeField] public GameObject panelForNotHavingGasCan;
     [SerializeField] public GameObject map;
     [SerializeField] public GameObject missionsPanel;
+    [SerializeField] Image loadingImage;
 
     public bool isCollidingWithTask = false;
     public bool isCollidingWithTask2 = false;
@@ -24,6 +26,8 @@ public class Player_Controller : MonoBehaviour
 
     GameManager gameManager;
     Task3_Script task3Script;
+
+    // if (Input.GetMouseButtonDown(0))
 
     private void Start()
     {
