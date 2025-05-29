@@ -10,6 +10,7 @@ public class Script2Task : MonoBehaviour
     [SerializeField] GameObject lightBlock;
     [SerializeField] Material newMaterial;
     [SerializeField] Material newMaterial2;
+    GameManager gameManager;
 
     public bool canDisable = false;
     public float timeForCanDisable = 0f;
@@ -36,6 +37,7 @@ public class Script2Task : MonoBehaviour
                 secondCamera.enabled = false;
                 canDisable = false;
                 lightBlock.GetComponent<MeshRenderer>().material = newMaterial2;
+                gameManager.isTask2Complete = true;
                 timeForCanDisable = 0f;
 
             }
@@ -55,5 +57,6 @@ public class Script2Task : MonoBehaviour
         }
         mainCamera.enabled = true;
         secondCamera.enabled = false;
+        gameManager = FindObjectOfType<GameManager>();
     }
 }

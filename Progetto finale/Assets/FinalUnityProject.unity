@@ -161438,6 +161438,9 @@ MonoBehaviour:
   task1: {fileID: 88457741}
   task2: {fileID: 1583849573}
   canPlay: 0
+  isTask1Complete: 0
+  isTask2Complete: 0
+  isTask3Complete: 0
 --- !u!4 &1003036195
 Transform:
   m_ObjectHideFlags: 0
@@ -294441,11 +294444,15 @@ PrefabInstance:
       objectReference: {fileID: 2046390525}
     - target: {fileID: 456736121718494262, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_VersionIndex
-      value: 1045
+      value: 1345
       objectReference: {fileID: 0}
     - target: {fileID: 2055873919354519706, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: speed
       value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 2669839646324808511, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3139318493654128179, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_Mesh
@@ -294457,7 +294464,7 @@ PrefabInstance:
       objectReference: {fileID: 815499756}
     - target: {fileID: 3533084527170642901, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_VersionIndex
-      value: 1234
+      value: 1534
       objectReference: {fileID: 0}
     - target: {fileID: 3896302136189043801, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_LocalRotation.w
@@ -294493,7 +294500,7 @@ PrefabInstance:
       objectReference: {fileID: 1747238223}
     - target: {fileID: 4749361724351936363, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_VersionIndex
-      value: 1237
+      value: 1537
       objectReference: {fileID: 0}
     - target: {fileID: 5628095057370539356, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_Mesh
@@ -294501,7 +294508,7 @@ PrefabInstance:
       objectReference: {fileID: 129645399}
     - target: {fileID: 5628095057370539356, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_VersionIndex
-      value: 1045
+      value: 1345
       objectReference: {fileID: 0}
     - target: {fileID: 5756449813249042753, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_Mesh
@@ -294567,13 +294574,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: BasicSkinViewedInGame
       objectReference: {fileID: 0}
+    - target: {fileID: 7936277459152022587, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7962276367138012763, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1795294885}
     - target: {fileID: 7962276367138012763, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_VersionIndex
-      value: 2009
+      value: 2309
       objectReference: {fileID: 0}
     - target: {fileID: 8235651103810075602, guid: d0268f644e93a204c8d3ee2c4c509add, type: 3}
       propertyPath: m_Radius
@@ -345027,6 +345038,10 @@ PrefabInstance:
       propertyPath: gasCan
       value: 
       objectReference: {fileID: 495849439}
+    - target: {fileID: 6754714565798380834, guid: 27ed64c836e2b0144b746480758c2eb0, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 626898077}
     - target: {fileID: 6754714565798380834, guid: 27ed64c836e2b0144b746480758c2eb0, type: 3}
       propertyPath: mainCamera
       value: 

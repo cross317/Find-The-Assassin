@@ -6,6 +6,7 @@ public class Script1Task : MonoBehaviour
 {
     public Animator animator;
     GameObject player;
+    GameManager gameManager;
     Player_Controller playerController;
     [SerializeField] float timeTask;
     [SerializeField] GameObject maskForTask1;
@@ -38,6 +39,7 @@ public class Script1Task : MonoBehaviour
                 maskForTask1.SetActive(true);
                 Debug.Log(hasPlayed);
                 currentTimeTask = 3f;
+                gameManager.isTask1Complete = true;
             }
         }
     }
@@ -46,5 +48,6 @@ public class Script1Task : MonoBehaviour
         animator = GetComponent<Animator>();
         playerController = FindObjectOfType<Player_Controller>();
         Debug.Log("playerController trovato: " + (playerController != null));
+        gameManager = FindObjectOfType<GameManager>();
     }
 }

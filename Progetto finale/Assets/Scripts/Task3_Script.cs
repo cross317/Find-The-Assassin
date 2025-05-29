@@ -9,6 +9,7 @@ public class Task3_Script : MonoBehaviour
     [SerializeField] Camera mainCamera;
     [SerializeField] Camera thirdCamera;
     [SerializeField] Animator animator;
+    GameManager gameManager;
 
     public bool canDoTask3 = false;
     public float canStop1 = 0f;
@@ -20,7 +21,7 @@ public class Task3_Script : MonoBehaviour
     public void Start()
     {
         playerController = FindObjectOfType<Player_Controller>();
-        animator = FindObjectOfType<Animator>();
+        gameManager = FindObjectOfType<GameManager>();
         mainCamera.enabled = true;
         thirdCamera.enabled = false;
     }
@@ -66,6 +67,8 @@ public class Task3_Script : MonoBehaviour
             thirdCamera.enabled = false;
             mainCamera.enabled = true;
             canDisablePanelInventory = true;
+            gameManager.isTask3Complete = true;
+            animator.SetTrigger("Stop");
         }
         if (canDisablePanelInventory == true)
         {

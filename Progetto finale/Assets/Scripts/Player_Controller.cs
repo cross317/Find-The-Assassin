@@ -12,6 +12,8 @@ public class Player_Controller : MonoBehaviour
     [SerializeField] GameObject panelPlayerUseTask;
     [Serialize] public GameObject panelForInventory1;
     [SerializeField] public GameObject panelForNotHavingGasCan;
+    [SerializeField] public GameObject map;
+    [SerializeField] public GameObject missionsPanel;
 
     public bool isCollidingWithTask = false;
     public bool isCollidingWithTask2 = false;
@@ -44,6 +46,21 @@ public class Player_Controller : MonoBehaviour
         else if (!isCollidingWithTask || isCollidingWithTask2 == false || isCollidingWithTask3 == false)
         {
             panelPlayerUseTask.SetActive(false);
+        }
+        if (isCollidingWithCan == false && isCollidingWithTask == false && isCollidingWithTask2 == false && isCollidingWithTask3 == false)
+        {
+            if (Input.GetKey(KeyCode.M))
+            {
+                map.SetActive(true);
+            }
+            else if (Input.GetKeyUp(KeyCode.M))
+            {
+                map.SetActive(false);
+            }
+        }
+        if (gameManager.isTask1Complete == true && gameManager.isTask2Complete == true && gameManager.isTask3Complete == true)
+        {
+            missionsPanel.SetActive(false);
         }
     }
 
