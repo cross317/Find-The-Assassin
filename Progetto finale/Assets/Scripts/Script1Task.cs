@@ -16,7 +16,7 @@ public class Script1Task : MonoBehaviour
 
     private void Update()
     {
-        if (playerController.isCollidingWithTask)
+        if (playerController.isCollidingWithTask && playerController.canDoTasks == true)
         {
             if (Input.GetKeyDown(KeyCode.E)) 
             {

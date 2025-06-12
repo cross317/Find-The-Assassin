@@ -28,18 +28,18 @@ public class Task3_Script : MonoBehaviour
 
     private void Update()
     {
-        if (playerController.isCollidingWithCan == true)
+        if (playerController.isCollidingWithCan == true && playerController.canDoTasks == true)
         {
             canDoTask3 = true;
             gasCan.SetActive(false);
             playerController.panelForInventory1.SetActive(true);
         }
-        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E))
+        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
         {
             playerController.panelForNotHavingGasCan.SetActive(true);
             isPanel1Active = true;
         }
-        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && isPanel1Active == true)
+        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && isPanel1Active == true && playerController.canDoTasks == true)
         {
             canStop1 += Time.deltaTime;
 
@@ -50,7 +50,7 @@ public class Task3_Script : MonoBehaviour
                 isPanel1Active = false;
             }
         }
-        if (canDoTask3 == true && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E))
+        if (canDoTask3 == true && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
         {
             isMainCameraActive = false;
         }

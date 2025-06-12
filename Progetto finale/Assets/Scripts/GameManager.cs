@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
+
 {
     public Script1Task task1;
     public Script2Task task2;
@@ -10,6 +12,9 @@ public class GameManager : MonoBehaviour
     public bool isTask1Complete = false;
     public bool isTask2Complete = false;
     public bool isTask3Complete = false;
+    [SerializeField] List<Transform> spawns = new List<Transform>();
+    
+    int randSpawn;
 
     public static GameManager Instance { get; private set; }
     private void Awake()
@@ -20,7 +25,26 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-
     }
 
+    public override void OnJoinedLobby()
+    {
+        SpawnPlayers();
+    }
+
+    public void SpawnPlayers()
+    {
+        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+        {
+        if (spawns.Count > 0)
+        {
+            randSpawn = Random.Range(0, spawns.Count);
+            PhotonNetwork.Instantiate("BasicSkinViewedInGame", spawns[randSpawn].position, spawns[randSpawn].rotation);
+        }
+        else
+        {
+            Debug.LogError("Lista degli spawn è vuota!");
+        }
+    }
+}
 }

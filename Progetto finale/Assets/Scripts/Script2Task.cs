@@ -19,7 +19,7 @@ public class Script2Task : MonoBehaviour
     {
         if (playerController.isCollidingWithTask2)
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
             {
                 mainCamera.enabled = false;
                 secondCamera.enabled = true;

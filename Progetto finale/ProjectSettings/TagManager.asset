@@ -9,6 +9,7 @@ TagManager:
   - task2
   - task3
   - GasCan
+  - Assassin
   layers:
   - Default
   - TransparentFX
