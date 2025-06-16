@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun.Demo.PunBasics;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ReferenceMaager : MonoBehaviour
 {
@@ -16,9 +18,18 @@ public class ReferenceMaager : MonoBehaviour
         Instance = this;
     }
 
+    public bool isCollidingWithTask = false;
+    public bool isCollidingWithTask2 = false;
+    public bool isCollidingWithCan = false;
+    public bool isCollidingWithTask3 = false;
+    public bool isCollidingWithPlayer = false;
+    public bool isAssassin = false;
+    public bool isDead = false;
+    public bool canDoTasks = true;
+    public bool isPanel1Active = false;
 
-    public Task3_Script task3Script;
-    public GameManager gameManager;
+    Task3_Script task3Script;
+    GameManager gameManager;
 
     public void Start()
     {

@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
-public class Script1Task : MonoBehaviour
+public class Script1Task : MonoBehaviourPunCallbacks
 {
     public Animator animator;
     GameObject player;
@@ -16,7 +17,7 @@ public class Script1Task : MonoBehaviour
 
     private void Update()
     {
-        if (playerController.isCollidingWithTask && playerController.canDoTasks == true)
+        if (ReferenceMaager.Instance.isCollidingWithTask && ReferenceMaager.Instance.canDoTasks == true)
         {
             if (Input.GetKeyDown(KeyCode.E)) 
             {
@@ -43,11 +44,15 @@ public class Script1Task : MonoBehaviour
             }
         }
     }
-    private void Start()
+
+    private IEnumerator Start()
     {
         animator = GetComponent<Animator>();
+        yield return new WaitForSeconds(0.1f); 
+
         playerController = FindObjectOfType<Player_Controller>();
         Debug.Log("playerController trovato: " + (playerController != null));
+
         gameManager = FindObjectOfType<GameManager>();
     }
 }

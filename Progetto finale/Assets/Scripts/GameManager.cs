@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public bool isTask2Complete = false;
     public bool isTask3Complete = false;
     [SerializeField] List<Transform> spawns = new List<Transform>();
-    
+
     int randSpawn;
 
     public static GameManager Instance { get; private set; }
@@ -27,24 +27,35 @@ public class GameManager : MonoBehaviourPunCallbacks
         Instance = this;
     }
 
-    public override void OnJoinedLobby()
-    {
-        SpawnPlayers();
-    }
-
-    public void SpawnPlayers()
-    {
-        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+    private void Start()
+    {   
+        if (PhotonNetwork.InRoom)
         {
-        if (spawns.Count > 0)
-        {
-            randSpawn = Random.Range(0, spawns.Count);
-            PhotonNetwork.Instantiate("BasicSkinViewedInGame", spawns[randSpawn].position, spawns[randSpawn].rotation);
+            Debug.Log("✅ In stanza: istanzio i player da Start()");
+            SpawnPlayers();
         }
         else
         {
-            Debug.LogError("Lista degli spawn � vuota!");
+            Debug.LogError("❌ Non sei in una stanza! Impossibile istanziare i player.");
         }
     }
-}
+
+
+    public void SpawnPlayers()
+    {
+        Debug.Log("SpawnPlayers() chiamato");
+
+        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom)
+        {
+            if (spawns.Count > 0)
+            {
+                randSpawn = Random.Range(0, spawns.Count);
+                PhotonNetwork.Instantiate("BasicSkinViewedInGame", spawns[randSpawn].position, spawns[randSpawn].rotation);
+            }
+            else
+            {
+                Debug.LogError("Lista degli spawn è vuota!");
+            }
+        }
+    }
 }

@@ -1,10 +1,10 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
-public class Script2Task : MonoBehaviour
+public class Script2Task : MonoBehaviourPunCallbacks
 {
-    [SerializeField] Camera mainCamera;
     [SerializeField] Camera secondCamera;
     Player_Controller playerController;
     [SerializeField] GameObject lightBlock;
@@ -17,15 +17,20 @@ public class Script2Task : MonoBehaviour
 
     private void Update()
     {
-        if (playerController.isCollidingWithTask2)
+        if (ReferenceMaager.Instance.isCollidingWithTask2)
         {
-            if (Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
+            if (Input.GetKeyDown(KeyCode.E) && ReferenceMaager.Instance.canDoTasks == true)
             {
-                mainCamera.enabled = false;
-                secondCamera.enabled = true;
-                canDisable = true;
-                lightBlock.GetComponent<MeshRenderer>().material = newMaterial;
-                Debug.Log("Tasto E premuto!");
+                if (!playerController.isMainCameraLocked)
+                {
+                    playerController.isMainCameraLocked = true; 
+                    playerController.mainCamera.enabled = false;
+                    secondCamera.enabled = true;
+                    canDisable = true;
+                    photonView.RPC("CambiaColore", RpcTarget.All);
+                
+                    Debug.Log("Tasto E premuto in Task2!");
+                }
             }
         }
         if (canDisable == true && timeForCanDisable >= 3f)
@@ -33,10 +38,11 @@ public class Script2Task : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.E))
             {
                 Debug.Log("canDisable: " + canDisable);
-                mainCamera.enabled = true;
+                playerController.isMainCameraLocked = false;
+                playerController.mainCamera.enabled = true;
                 secondCamera.enabled = false;
                 canDisable = false;
-                lightBlock.GetComponent<MeshRenderer>().material = newMaterial2;
+                photonView.RPC("CambiaColore2", RpcTarget.All);
                 gameManager.isTask2Complete = true;
                 timeForCanDisable = 0f;
 
@@ -48,15 +54,37 @@ public class Script2Task : MonoBehaviour
         }
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
-        playerController = FindObjectOfType<Player_Controller>();
-        if (playerController == null)
+        while (FindObjectOfType<Player_Controller>() == null)
         {
-            Debug.LogError("Player_Controller non trovato! Assicurati che esista nella scena.");
+            yield return null; 
         }
-        mainCamera.enabled = true;
-        secondCamera.enabled = false;
+
+        playerController = FindObjectOfType<Player_Controller>();
         gameManager = FindObjectOfType<GameManager>();
+
+        if (playerController.mainCamera == null)
+        {
+            Debug.LogError("mainCamera non trovata nel Player_Controller!");
+            yield break;
+        }
+
+        playerController.mainCamera.enabled = true;
+        secondCamera.enabled = false;
+
+        Debug.Log(" Script2Task inizializzato correttamente.");
+    }
+
+    [PunRPC]
+    public void CambiaColore2()
+    {
+        lightBlock.GetComponent<MeshRenderer>().material = newMaterial2;
+    }
+
+    [PunRPC]
+    public void CambiaColore()
+    {
+        lightBlock.GetComponent<MeshRenderer>().material = newMaterial;
     }
 }

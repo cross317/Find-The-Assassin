@@ -1,45 +1,64 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
-public class Task3_Script : MonoBehaviour
+public class Task3_Script : MonoBehaviourPunCallbacks
 {
     Player_Controller playerController;
     [SerializeField] GameObject gasCan;
-    [SerializeField] Camera mainCamera;
     [SerializeField] Camera thirdCamera;
     [SerializeField] Animator animator;
     GameManager gameManager;
 
     public bool canDoTask3 = false;
     public float canStop1 = 0f;
-    public bool isPanel1Active = false;
     public bool isMainCameraActive = true;
     public float timeToFinishTask3 = 0f;
     public bool canDisablePanelInventory = false;
+    private bool isRunningTask3 = false;
+    public bool canChangeCamera = true;
 
-    public void Start()
+    private IEnumerator Start()
     {
+        // Aspetta che il player venga instanziato
+        while (FindObjectOfType<Player_Controller>() == null)
+            yield return null;
+
         playerController = FindObjectOfType<Player_Controller>();
         gameManager = FindObjectOfType<GameManager>();
-        mainCamera.enabled = true;
-        thirdCamera.enabled = false;
-    }
 
+        if (playerController == null)
+        {
+            Debug.LogError("playerController ancora NULL dopo attesa!");
+            yield break;
+        }
+
+        if (playerController.mainCamera == null)
+        {
+            Debug.LogError("mainCamera nel playerController è NULL!");
+            yield break;
+        }
+
+        playerController.mainCamera.enabled = true;
+        thirdCamera.enabled = false;
+
+        Debug.Log("Task3 inizializzato correttamente.");
+    }
     private void Update()
     {
-        if (playerController.isCollidingWithCan == true && playerController.canDoTasks == true)
+        if (ReferenceMaager.Instance.isCollidingWithCan == true && ReferenceMaager.Instance.canDoTasks == true)
         {
             canDoTask3 = true;
             gasCan.SetActive(false);
             playerController.panelForInventory1.SetActive(true);
         }
-        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
+        if (canDoTask3 == false && ReferenceMaager.Instance.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && ReferenceMaager.Instance.canDoTasks == true)
         {
             playerController.panelForNotHavingGasCan.SetActive(true);
-            isPanel1Active = true;
+            ReferenceMaager.Instance.isPanel1Active = true;
         }
-        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && isPanel1Active == true && playerController.canDoTasks == true)
+        if (canDoTask3 == false && ReferenceMaager.Instance.isCollidingWithTask3 == true && ReferenceMaager.Instance.isPanel1Active == true && ReferenceMaager.Instance.canDoTasks == true)
         {
             canStop1 += Time.deltaTime;
 
@@ -47,25 +66,49 @@ public class Task3_Script : MonoBehaviour
             {
                 playerController.panelForNotHavingGasCan.SetActive(false);
                 canStop1 = 0f;
-                isPanel1Active = false;
+                ReferenceMaager.Instance.isPanel1Active = false;
             }
         }
-        if (canDoTask3 == true && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
+        if (canDoTask3 == true && ReferenceMaager.Instance.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && ReferenceMaager.Instance.canDoTasks == true)
         {
-            isMainCameraActive = false;
+            if (!playerController.isMainCameraLocked)
+            {
+                isMainCameraActive = false;
+                isRunningTask3 = true; 
+                playerController.isMainCameraLocked = true; 
+            }
         }
-        if (isMainCameraActive == false)
+        if (isRunningTask3 && isMainCameraActive == false)
         {
             timeToFinishTask3 += Time.deltaTime;
-            thirdCamera.enabled = true;
-            mainCamera.enabled = false;
+
+            if (playerController.photonView.IsMine)
+            {
+                thirdCamera.enabled = true;
+                playerController.mainCamera.enabled = false;
+            }
+
             animator.SetTrigger("Play Once");
         }
-        if (timeToFinishTask3 >= 2.5f && playerController.isCollidingWithTask3 == true)
+        if (isRunningTask3 && timeToFinishTask3 >= 2.5f)
         {
             isMainCameraActive = true;
-            thirdCamera.enabled = false;
-            mainCamera.enabled = true;
+
+            if (playerController.photonView.IsMine)
+            {
+                thirdCamera.enabled = false;
+                if (canChangeCamera == true)
+                {
+                    playerController.mainCamera.enabled = true;
+                    canChangeCamera = false;
+                }
+                if (canChangeCamera == false)
+                {
+                    Debug.Log("All good");
+                }
+            }
+
+            playerController.isMainCameraLocked = false;
             canDisablePanelInventory = true;
             gameManager.isTask3Complete = true;
             animator.SetTrigger("Stop");

@@ -103048,22 +103048,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 70
-  rb: {fileID: 3105383671839952568}
   player: {fileID: 3021612246274610019}
+  rb: {fileID: 3105383671839952568}
   panelPlayerUseTask: {fileID: 3964632187013067502}
-  panelForInventory1: {fileID: 603594813615056601}
-  panelForNotHavingGasCan: {fileID: 2301022720033065438}
   map: {fileID: 4923584727667829546}
   missionsPanel: {fileID: 9078733144698478977}
-  isCollidingWithTask: 0
-  isCollidingWithTask2: 0
-  isCollidingWithCan: 0
-  isCollidingWithTask3: 0
-  isCollidingWithPlayer: 0
-  isAssassin: 1
-  isDead: 0
-  canDoTasks: 1
+  panelForInventory1: {fileID: 603594813615056601}
+  panelForNotHavingGasCan: {fileID: 2301022720033065438}
+  mainCamera: {fileID: 3178676357316259746}
   players: []
+  canPlay: 0
+  isMainCameraLocked: 0
 --- !u!114 &1220699280333066224
 MonoBehaviour:
   m_ObjectHideFlags: 0

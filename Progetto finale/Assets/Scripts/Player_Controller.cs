@@ -1,62 +1,52 @@
-﻿using Microsoft.Unity.VisualStudio.Editor;
+﻿using System;
+using Microsoft.Unity.VisualStudio.Editor;
+using Photon.Pun;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
-using UnityEngine.SceneManagement;
 using Image = Microsoft.Unity.VisualStudio.Editor.Image;
-using Photon.Pun;
 
 public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 {
-    [SerializeField] float speed;
-    [SerializeField] Rigidbody rb;
-    public GameObject player;
-    [SerializeField] GameObject panelPlayerUseTask;
-    [Serialize] public GameObject panelForInventory1;
-    [SerializeField] public GameObject panelForNotHavingGasCan;
-    [SerializeField] public GameObject map;
-    [SerializeField] public GameObject missionsPanel;
-    [SerializeField] Image loadingImage;
 
-    public bool isCollidingWithTask = false;
-    public bool isCollidingWithTask2 = false;
-    public bool isCollidingWithCan = false;
-    public bool isCollidingWithTask3 = false;
-    public bool isCollidingWithPlayer = false;
-    public bool isAssassin = false;
-    public bool isDead = false;
-    public bool canDoTasks = true;
 
     Vector3 direction;
-
+    public float speed = 100f;
+    [SerializeField] public GameObject player;
+    [SerializeField] Rigidbody rb;
+    [SerializeField] GameObject panelPlayerUseTask;
+    [SerializeField] GameObject map;
+    [SerializeField] GameObject missionsPanel;
+    [Serialize] public GameObject panelForInventory1;
+    [SerializeField] public GameObject panelForNotHavingGasCan;
     GameManager gameManager;
+    [SerializeField] public Camera mainCamera;
 
     public GameObject[] players;
     GameObject giocatorePiuVicino;
 
-    public Script1Task task1;
-    public Script2Task task2;
-    public Task3_Script task3;
     public bool canPlay;
+    public bool isMainCameraLocked = false;
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(isAssassin);
-            stream.SendNext(isDead);
+            stream.SendNext(ReferenceMaager.Instance.isAssassin);
+            stream.SendNext(ReferenceMaager.Instance.isDead);
         }
         else
         {
-            isAssassin = (bool)stream.ReceiveNext();
-            isDead = (bool)stream.ReceiveNext();
+            ReferenceMaager.Instance.isAssassin = (bool)stream.ReceiveNext();
+            ReferenceMaager.Instance.isDead = (bool)stream.ReceiveNext();
         }
     }
 
     private void Start()
     {
-        
+
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().enabled = false;
@@ -64,10 +54,20 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         player = gameObject;
 
         Player_Controller playerScript = player.GetComponent<Player_Controller>();
+        mainCamera = GetComponentInChildren<Camera>();
+        mainCamera.enabled = true;
+        if (mainCamera == null)
+        {
+            Debug.LogError("❌ mainCamera non trovata sul body!");
+        }
+        else
+        {
+            Debug.Log("✅ mainCamera trovata correttamente!");
+            mainCamera.enabled = photonView.IsMine;
+        }
+
         if (playerScript != null)
         {
-            playerScript.task1 = FindObjectOfType<Script1Task>();
-            playerScript.task2 = FindObjectOfType<Script2Task>();
             playerScript.canPlay = true;
         }
         else
@@ -76,33 +76,30 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         }
 
         rb = GetComponent<Rigidbody>();
-        task3Script = FindObjectOfType<Task3_Script>();
         gameManager = FindObjectOfType<GameManager>();
-    
-    //if (PhotonNetwork.IsMasterClient)
-    //{
-    //    isAssassin = true;
-    //}
-    // else
-    //{
-    //    isAssassin = false;
-    //}  
-        isAssassin = false;
-            print(isAssassin + ": isAssassin");
 
-        rb = GetComponent<Rigidbody>();
-       
-        if (isAssassin == false)
+        //if (PhotonNetwork.IsMasterClient)
+        //{
+        //    isAssassin = true;
+        //}
+        // else
+        //{
+        //    isAssassin = false;
+        //}  
+        ReferenceMaager.Instance.isAssassin = false;
+        print(ReferenceMaager.Instance.isAssassin + ": isAssassin");
+
+        if (ReferenceMaager.Instance.isAssassin == false)
         {
             player.tag = "Player";
-            canDoTasks = true;
-            Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+            ReferenceMaager.Instance.canDoTasks = true;
+            Debug.Log("Ruolo attuale: " + (ReferenceMaager.Instance.isAssassin ? "Assassin" : "Player"));
         }
-        if (isAssassin == true)
+        if (ReferenceMaager.Instance.isAssassin == true)
         {
             player.tag = "Assassin";
-            canDoTasks = false;
-            Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+            ReferenceMaager.Instance.canDoTasks = false;
+            Debug.Log("Ruolo attuale: " + (ReferenceMaager.Instance.isAssassin ? "Assassin" : "Player"));
         }
         players = GameObject.FindGameObjectsWithTag("Player");
     }
@@ -113,16 +110,16 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         pPosition.y = 0.1f;
         player.transform.position = pPosition;
 
-        if (isCollidingWithTask || isCollidingWithTask2 == true || isCollidingWithTask3 == true)
+        if (ReferenceMaager.Instance.isCollidingWithTask || ReferenceMaager.Instance.isCollidingWithTask2 == true || ReferenceMaager.Instance.isCollidingWithTask3 == true)
         {
             panelPlayerUseTask.SetActive(true);
 
         }
-        else if (!isCollidingWithTask || isCollidingWithTask2 == false || isCollidingWithTask3 == false)
+        else if (!ReferenceMaager.Instance.isCollidingWithTask || ReferenceMaager.Instance.isCollidingWithTask2 == false || ReferenceMaager.Instance.isCollidingWithTask3 == false)
         {
             panelPlayerUseTask.SetActive(false);
         }
-        if (isCollidingWithCan == false && isCollidingWithTask == false && isCollidingWithTask2 == false && isCollidingWithTask3 == false)
+        if (ReferenceMaager.Instance.isCollidingWithCan == false && ReferenceMaager.Instance.isCollidingWithTask == false && ReferenceMaager.Instance.isCollidingWithTask2 == false && ReferenceMaager.Instance.isCollidingWithTask3 == false)
         {
             if (Input.GetKey(KeyCode.M))
             {
@@ -139,30 +136,30 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             missionsPanel.SetActive(false);
         }
 
-        if (isAssassin == true)
-        {   
-            if (Input.GetMouseButtonDown(0) && isCollidingWithPlayer == true)
+        if (ReferenceMaager.Instance.isAssassin == true)
+        {
+            if (Input.GetMouseButtonDown(0) && ReferenceMaager.Instance.isCollidingWithPlayer == true)
             {
                 Attack();
-                Debug.Log("isDead =" + isDead);
-                Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+                Debug.Log("isDead =" + ReferenceMaager.Instance.isDead);
+                Debug.Log("Ruolo attuale: " + (ReferenceMaager.Instance.isAssassin ? "Assassin" : "Player"));
             }
         }
 
         if (players.Length <= 0)
         {
-            SceneManager.LoadScene("AssassinWon");
+            PhotonNetwork.LoadLevel("AssassinWon");
         }
     }
 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.task1.hasPlayed && GameManager.Instance.canPlay == false || GameManager.Instance.task2.canDisable == true || task3Script.isPanel1Active == true)
+        if (GameManager.Instance.task1.hasPlayed && GameManager.Instance.canPlay == false || GameManager.Instance.task2.canDisable == true || ReferenceMaager.Instance.isPanel1Active == true)
         {
             return;
         }
         if (!photonView.IsMine) return;
-        
+
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
 
@@ -181,24 +178,24 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         }
         if (collision.gameObject.CompareTag("task1"))
         {
-            isCollidingWithTask = true;
+            ReferenceMaager.Instance.isCollidingWithTask = true;
             Debug.Log("Tutto ok");
         }
         if (collision.gameObject.CompareTag("task2"))
         {
-            isCollidingWithTask2 = true;
+            ReferenceMaager.Instance.isCollidingWithTask2 = true;
         }
         if (collision.gameObject.CompareTag("task3"))
         {
-            isCollidingWithTask3 = true;
+            ReferenceMaager.Instance.isCollidingWithTask3 = true;
         }
         if (collision.gameObject.CompareTag("GasCan"))
         {
-            isCollidingWithCan = true;
+            ReferenceMaager.Instance.isCollidingWithCan = true;
         }
         if (collision.gameObject.CompareTag("Player"))
         {
-            isCollidingWithPlayer = true;
+            ReferenceMaager.Instance.isCollidingWithPlayer = true;
         }
     }
 
@@ -206,58 +203,64 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (collision.gameObject.CompareTag("task1"))
         {
-            isCollidingWithTask = false;
+            ReferenceMaager.Instance.isCollidingWithTask = false;
         }
         if (collision.gameObject.CompareTag("task2"))
         {
-            isCollidingWithTask2 = false;
+            ReferenceMaager.Instance.isCollidingWithTask2 = false;
         }
         if (collision.gameObject.CompareTag("task3"))
         {
-            isCollidingWithTask3 = false;
+            ReferenceMaager.Instance.isCollidingWithTask3 = false;
         }
         if (collision.gameObject.CompareTag("GasCan"))
         {
-            isCollidingWithCan = true;
+            ReferenceMaager.Instance.isCollidingWithCan = true;
         }
         if (collision.gameObject.CompareTag("Player"))
         {
-            isCollidingWithPlayer = false;
+            ReferenceMaager.Instance.isCollidingWithPlayer = false;
         }
     }
 
-    [PunRPC]
     public void Attack()
     {
         players = GameObject.FindGameObjectsWithTag("Player");
 
-        GameObject giocatorePiuVicino = null;
+        GameObject target = null;
         float distanzaMinima = 35f;
 
-        foreach (GameObject player in players)
+        foreach (GameObject p in players)
         {
+            if (p == this.gameObject) continue;
 
-            float distanza = Vector3.Distance(transform.position, player.transform.position);
+            float distanza = Vector3.Distance(transform.position, p.transform.position);
             if (distanza < distanzaMinima)
             {
                 distanzaMinima = distanza;
-                giocatorePiuVicino = player;
+                target = p;
             }
+        }
+        if (target != null)
+        {
+            PhotonView targetPV = target.GetComponent<PhotonView>();
 
-        }
-        if (giocatorePiuVicino != null)
-        {
-            Camera cameraGiocatore = giocatorePiuVicino.GetComponentInChildren<Camera>();
-            if (cameraGiocatore != null)
+            if (targetPV != null)
             {
-                cameraGiocatore.transform.SetParent(null);
+                targetPV.RPC("OnKilled", targetPV.Owner);
+                Debug.Log("🎯 Ucciso: " + target.name);
             }
-            PhotonNetwork.Destroy(giocatorePiuVicino);
-            players = GameObject.FindGameObjectsWithTag("Player");
-        }
-        else
-        {
-            Debug.Log("Nessun giocatore valido trovato!");
         }
     }
+    [PunRPC]
+    public void OnKilled()
+    {
+        if (mainCamera != null)
+        {
+            mainCamera.enabled = false;
+        }
+        Debug.Log("Sei stato ucciso!");
+        PhotonNetwork.Destroy(gameObject);
+    }
+
 }
