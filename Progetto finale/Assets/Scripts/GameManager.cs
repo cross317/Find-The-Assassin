@@ -13,6 +13,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     public bool isTask2Complete = false;
     public bool isTask3Complete = false;
     [SerializeField] List<Transform> spawns = new List<Transform>();
+    public int howManyTasksToWin;
+    public int totalTasks;
+    public int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
 
     int randSpawn;
 
@@ -31,16 +34,31 @@ public class GameManager : MonoBehaviourPunCallbacks
     {   
         if (PhotonNetwork.InRoom)
         {
-            Debug.Log("✅ In stanza: istanzio i player da Start()");
+            Debug.Log("In stanza: istanzio i player da Start()");
             SpawnPlayers();
         }
         else
         {
-            Debug.LogError("❌ Non sei in una stanza! Impossibile istanziare i player.");
+            Debug.LogError("Non sei in una stanza! Impossibile istanziare i player.");
         }
     }
 
-
+    public void Update()
+    {   
+        switch (playerCount)
+        {
+            case 1:
+                howManyTasksToWin = 3;
+                break;
+            case 3:
+                howManyTasksToWin = 6;
+                break;
+            case 4:
+                howManyTasksToWin = 9;
+                break;
+        }
+    }
+        
     public void SpawnPlayers()
     {
         Debug.Log("SpawnPlayers() chiamato");

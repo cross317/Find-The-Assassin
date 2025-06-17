@@ -17,7 +17,8 @@ public class Script1Task : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        if (ReferenceMaager.Instance.isCollidingWithTask && ReferenceMaager.Instance.canDoTasks == true)
+        if (playerController == null) return;
+        if (playerController.isCollidingWithTask && playerController.canDoTasks == true)
         {
             if (Input.GetKeyDown(KeyCode.E)) 
             {
@@ -48,7 +49,9 @@ public class Script1Task : MonoBehaviourPunCallbacks
     private IEnumerator Start()
     {
         animator = GetComponent<Animator>();
-        yield return new WaitForSeconds(0.1f); 
+
+        while (FindObjectOfType<Player_Controller>() == null)
+            yield return null;
 
         playerController = FindObjectOfType<Player_Controller>();
         Debug.Log("playerController trovato: " + (playerController != null));

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Microsoft.Unity.VisualStudio.Editor;
 using Photon.Pun;
 using Unity.VisualScripting;
@@ -23,6 +24,17 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] public GameObject panelForNotHavingGasCan;
     GameManager gameManager;
     [SerializeField] public Camera mainCamera;
+    [SerializeField] GameObject InnocentsWon;
+
+    public bool isCollidingWithTask = false;
+    public bool isCollidingWithTask2 = false;
+    public bool isCollidingWithCan = false;
+    public bool isCollidingWithTask3 = false;
+    public bool isCollidingWithPlayer = false;
+    public bool isAssassin = false;
+    public bool isDead = false;
+    public bool canDoTasks = true;
+    public bool isPanel1Active = false;
 
     public GameObject[] players;
     GameObject giocatorePiuVicino;
@@ -34,13 +46,13 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(ReferenceMaager.Instance.isAssassin);
-            stream.SendNext(ReferenceMaager.Instance.isDead);
+            stream.SendNext(isAssassin);
+            stream.SendNext(isDead);
         }
         else
         {
-            ReferenceMaager.Instance.isAssassin = (bool)stream.ReceiveNext();
-            ReferenceMaager.Instance.isDead = (bool)stream.ReceiveNext();
+            isAssassin = (bool)stream.ReceiveNext();
+            isDead = (bool)stream.ReceiveNext();
         }
     }
 
@@ -86,20 +98,20 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         //{
         //    isAssassin = false;
         //}  
-        ReferenceMaager.Instance.isAssassin = false;
-        print(ReferenceMaager.Instance.isAssassin + ": isAssassin");
+        isAssassin = false;
+        print(isAssassin + ": isAssassin");
 
-        if (ReferenceMaager.Instance.isAssassin == false)
+        if (isAssassin == false)
         {
             player.tag = "Player";
-            ReferenceMaager.Instance.canDoTasks = true;
-            Debug.Log("Ruolo attuale: " + (ReferenceMaager.Instance.isAssassin ? "Assassin" : "Player"));
+            canDoTasks = true;
+            Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
         }
-        if (ReferenceMaager.Instance.isAssassin == true)
+        if (isAssassin == true)
         {
             player.tag = "Assassin";
-            ReferenceMaager.Instance.canDoTasks = false;
-            Debug.Log("Ruolo attuale: " + (ReferenceMaager.Instance.isAssassin ? "Assassin" : "Player"));
+            canDoTasks = false;
+            Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
         }
         players = GameObject.FindGameObjectsWithTag("Player");
     }
@@ -110,16 +122,16 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         pPosition.y = 0.1f;
         player.transform.position = pPosition;
 
-        if (ReferenceMaager.Instance.isCollidingWithTask || ReferenceMaager.Instance.isCollidingWithTask2 == true || ReferenceMaager.Instance.isCollidingWithTask3 == true)
+        if (isCollidingWithTask || isCollidingWithTask2 == true || isCollidingWithTask3 == true)
         {
             panelPlayerUseTask.SetActive(true);
 
         }
-        else if (!ReferenceMaager.Instance.isCollidingWithTask || ReferenceMaager.Instance.isCollidingWithTask2 == false || ReferenceMaager.Instance.isCollidingWithTask3 == false)
+        else if (!isCollidingWithTask || isCollidingWithTask2 == false || isCollidingWithTask3 == false)
         {
             panelPlayerUseTask.SetActive(false);
         }
-        if (ReferenceMaager.Instance.isCollidingWithCan == false && ReferenceMaager.Instance.isCollidingWithTask == false && ReferenceMaager.Instance.isCollidingWithTask2 == false && ReferenceMaager.Instance.isCollidingWithTask3 == false)
+        if (isCollidingWithCan == false && isCollidingWithTask == false && isCollidingWithTask2 == false && isCollidingWithTask3 == false)
         {
             if (Input.GetKey(KeyCode.M))
             {
@@ -132,21 +144,31 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         }
 
         if (gameManager.isTask1Complete == true && gameManager.isTask2Complete == true && gameManager.isTask3Complete == true)
-        {
-            missionsPanel.SetActive(false);
-        }
-
-        if (ReferenceMaager.Instance.isAssassin == true)
-        {
-            if (Input.GetMouseButtonDown(0) && ReferenceMaager.Instance.isCollidingWithPlayer == true)
+        {   
+            if (photonView.IsMine == true)
             {
-                Attack();
-                Debug.Log("isDead =" + ReferenceMaager.Instance.isDead);
-                Debug.Log("Ruolo attuale: " + (ReferenceMaager.Instance.isAssassin ? "Assassin" : "Player"));
+                missionsPanel.SetActive(false);
+                GameManager.Instance.totalTasks += 3;
+                Debug.Log(GameManager.Instance.totalTasks + ": total tasks");
+                if (GameManager.Instance.totalTasks == GameManager.Instance.howManyTasksToWin)
+                {
+                    photonView.RPC("ChangeScreen", RpcTarget.All);
+
+                }
             }
         }
 
-        if (players.Length <= 0)
+        if (isAssassin == true)
+        {
+            if (Input.GetMouseButtonDown(0) && isCollidingWithPlayer == true)
+            {
+                Attack();
+                Debug.Log("isDead =" + isDead);
+                Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+            }
+        }
+
+        if (photonView.IsMine && players.Length <= 0 && PhotonNetwork.InRoom)
         {
             PhotonNetwork.LoadLevel("AssassinWon");
         }
@@ -154,7 +176,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.task1.hasPlayed && GameManager.Instance.canPlay == false || GameManager.Instance.task2.canDisable == true || ReferenceMaager.Instance.isPanel1Active == true)
+        if (GameManager.Instance.task1.hasPlayed && GameManager.Instance.canPlay == false || GameManager.Instance.task2.canDisable == true || isPanel1Active == true)
         {
             return;
         }
@@ -178,24 +200,24 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         }
         if (collision.gameObject.CompareTag("task1"))
         {
-            ReferenceMaager.Instance.isCollidingWithTask = true;
+            isCollidingWithTask = true;
             Debug.Log("Tutto ok");
         }
         if (collision.gameObject.CompareTag("task2"))
         {
-            ReferenceMaager.Instance.isCollidingWithTask2 = true;
+            isCollidingWithTask2 = true;
         }
         if (collision.gameObject.CompareTag("task3"))
         {
-            ReferenceMaager.Instance.isCollidingWithTask3 = true;
+            isCollidingWithTask3 = true;
         }
         if (collision.gameObject.CompareTag("GasCan"))
         {
-            ReferenceMaager.Instance.isCollidingWithCan = true;
+            isCollidingWithCan = true;
         }
         if (collision.gameObject.CompareTag("Player"))
         {
-            ReferenceMaager.Instance.isCollidingWithPlayer = true;
+            isCollidingWithPlayer = true;
         }
     }
 
@@ -203,23 +225,23 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (collision.gameObject.CompareTag("task1"))
         {
-            ReferenceMaager.Instance.isCollidingWithTask = false;
+            isCollidingWithTask = false;
         }
         if (collision.gameObject.CompareTag("task2"))
         {
-            ReferenceMaager.Instance.isCollidingWithTask2 = false;
+            isCollidingWithTask2 = false;
         }
         if (collision.gameObject.CompareTag("task3"))
         {
-            ReferenceMaager.Instance.isCollidingWithTask3 = false;
+            isCollidingWithTask3 = false;
         }
         if (collision.gameObject.CompareTag("GasCan"))
         {
-            ReferenceMaager.Instance.isCollidingWithCan = true;
+            isCollidingWithCan = true;
         }
         if (collision.gameObject.CompareTag("Player"))
         {
-            ReferenceMaager.Instance.isCollidingWithPlayer = false;
+            isCollidingWithPlayer = false;
         }
     }
 
@@ -248,7 +270,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             if (targetPV != null)
             {
                 targetPV.RPC("OnKilled", targetPV.Owner);
-                Debug.Log("🎯 Ucciso: " + target.name);
+                Debug.Log("Ucciso: " + target.name);
             }
         }
     }
@@ -263,4 +285,27 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         PhotonNetwork.Destroy(gameObject);
     }
 
+    public void ReturnToMenu()
+    {
+        PhotonNetwork.AutomaticallySyncScene = false;
+        StartCoroutine(LoadMenuAfterLeaving());
+    }
+
+    private IEnumerator LoadMenuAfterLeaving()
+    {
+        PhotonNetwork.LeaveRoom();
+        while (PhotonNetwork.InRoom)
+        {
+            yield return null;
+        }
+
+        SceneManager.LoadScene("Menu");
+    }
+
+    [PunRPC]
+    public void ChangeScreen()
+    {
+        InnocentsWon.SetActive(true);
+        GameManager.Instance.totalTasks = 0;      
+    }
 }

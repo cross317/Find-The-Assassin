@@ -47,18 +47,20 @@ public class Task3_Script : MonoBehaviourPunCallbacks
     }
     private void Update()
     {
-        if (ReferenceMaager.Instance.isCollidingWithCan == true && ReferenceMaager.Instance.canDoTasks == true)
+        if (playerController == null || playerController.mainCamera == null) return;
+
+        if (playerController.isCollidingWithCan == true && playerController.canDoTasks == true)
         {
             canDoTask3 = true;
             gasCan.SetActive(false);
             playerController.panelForInventory1.SetActive(true);
         }
-        if (canDoTask3 == false && ReferenceMaager.Instance.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && ReferenceMaager.Instance.canDoTasks == true)
+        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
         {
             playerController.panelForNotHavingGasCan.SetActive(true);
-            ReferenceMaager.Instance.isPanel1Active = true;
+            playerController.isPanel1Active = true;
         }
-        if (canDoTask3 == false && ReferenceMaager.Instance.isCollidingWithTask3 == true && ReferenceMaager.Instance.isPanel1Active == true && ReferenceMaager.Instance.canDoTasks == true)
+        if (canDoTask3 == false && playerController.isCollidingWithTask3 == true && playerController.isPanel1Active == true && playerController.canDoTasks == true)
         {
             canStop1 += Time.deltaTime;
 
@@ -66,10 +68,10 @@ public class Task3_Script : MonoBehaviourPunCallbacks
             {
                 playerController.panelForNotHavingGasCan.SetActive(false);
                 canStop1 = 0f;
-                ReferenceMaager.Instance.isPanel1Active = false;
+                playerController.isPanel1Active = false;
             }
         }
-        if (canDoTask3 == true && ReferenceMaager.Instance.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && ReferenceMaager.Instance.canDoTasks == true)
+        if (canDoTask3 == true && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
         {
             if (!playerController.isMainCameraLocked)
             {

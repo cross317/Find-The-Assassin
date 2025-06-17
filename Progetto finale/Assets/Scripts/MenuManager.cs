@@ -11,17 +11,16 @@ public class MenuManager : MonoBehaviourPunCallbacks
     [SerializeField] TMP_Text timerText;
     [SerializeField] GameObject primaryPanel;
     [SerializeField] GameObject secondaryPanel;
+    [SerializeField] TMP_Text playerName;
 
     public float timer = 5f;
     public bool canStartTimer = false;
+    private bool isConnectedToMaster = false;
 
     public void Start()
     {   
-
         primaryPanel.SetActive(true);
         secondaryPanel.SetActive(false);
-        PhotonNetwork.NickName = "Player" + Random.Range(1, 9999);
-        Debug.Log("Player Name:" + PhotonNetwork.NickName);
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.GameVersion = "1";
         PhotonNetwork.ConnectUsingSettings();
@@ -43,6 +42,11 @@ public class MenuManager : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
+        if (!isConnectedToMaster)
+        {
+            Debug.LogWarning("Non ancora connesso");
+            return;
+        }
         PhotonNetwork.CreateRoom(null, new Photon.Realtime.RoomOptions { MaxPlayers = 4 });
     }
 
@@ -55,12 +59,15 @@ public class MenuManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("Sei entrato nella stanza!");
         SceneManager.LoadScene("Lobby");
-        
     }
 
     public override void OnConnectedToMaster()
     {
         Debug.Log("Connected To The Server");
+        isConnectedToMaster = true;
+        PhotonNetwork.NickName = "Player" + Random.Range(1, 9999);
+        Debug.Log("Player Name:" + PhotonNetwork.NickName);
+        playerName.text = "Your name is:\n" + PhotonNetwork.NickName;
     }
 
     public void AggiornaTimerUi()

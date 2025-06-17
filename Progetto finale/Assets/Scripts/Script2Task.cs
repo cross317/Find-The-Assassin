@@ -17,9 +17,9 @@ public class Script2Task : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        if (ReferenceMaager.Instance.isCollidingWithTask2)
+        if (playerController.isCollidingWithTask2)
         {
-            if (Input.GetKeyDown(KeyCode.E) && ReferenceMaager.Instance.canDoTasks == true)
+            if (Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
             {
                 if (!playerController.isMainCameraLocked)
                 {
@@ -73,7 +73,7 @@ public class Script2Task : MonoBehaviourPunCallbacks
         playerController.mainCamera.enabled = true;
         secondCamera.enabled = false;
 
-        Debug.Log(" Script2Task inizializzato correttamente.");
+        Debug.Log("Script2Task inizializzato correttamente.");
     }
 
     [PunRPC]
