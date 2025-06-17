@@ -9,17 +9,14 @@ public class GameManager : MonoBehaviourPunCallbacks
     public Script1Task task1;
     public Script2Task task2;
     public bool canPlay;
-    public bool isTask1Complete = false;
-    public bool isTask2Complete = false;
-    public bool isTask3Complete = false;
     [SerializeField] List<Transform> spawns = new List<Transform>();
     public int howManyTasksToWin;
     public int totalTasks;
-    public int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
 
     int randSpawn;
 
     public static GameManager Instance { get; private set; }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -44,7 +41,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
 
     public void Update()
-    {   
+    {
+        int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;   
+
         switch (playerCount)
         {
             case 1:

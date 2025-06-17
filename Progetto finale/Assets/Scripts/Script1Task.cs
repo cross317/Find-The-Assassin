@@ -6,9 +6,9 @@ using UnityEngine;
 public class Script1Task : MonoBehaviourPunCallbacks
 {
     public Animator animator;
-    GameObject player;
     GameManager gameManager;
     Player_Controller playerController;
+
     [SerializeField] float timeTask;
     [SerializeField] GameObject maskForTask1;
 
@@ -18,30 +18,31 @@ public class Script1Task : MonoBehaviourPunCallbacks
     private void Update()
     {
         if (playerController == null) return;
-        if (playerController.isCollidingWithTask && playerController.canDoTasks == true)
+
+        if (playerController.isCollidingWithTask && playerController.canDoTasks)
         {
-            if (Input.GetKeyDown(KeyCode.E)) 
+            if (Input.GetKeyDown(KeyCode.E) && !hasPlayed)
             {
-                if (hasPlayed == false)
-                {
-                    Debug.Log("Tasto E premuto in " + gameObject.name);
-                    animator.SetTrigger("PlayOnce");
-                    hasPlayed = true;
-                    GameManager.Instance.canPlay = false;
-                }
+                Debug.Log("Tasto E premuto in " + gameObject.name);
+                animator.SetTrigger("PlayOnce");
+                hasPlayed = true;
+                GameManager.Instance.canPlay = false;
             }
         }
-        if (hasPlayed == true)
+
+        if (hasPlayed)
         {
             currentTimeTask += Time.deltaTime;
+
             if (currentTimeTask >= timeTask)
             {
-                animator.SetTrigger("Stop");     
+                animator.SetTrigger("Stop");
                 GameManager.Instance.canPlay = true;
-                maskForTask1.SetActive(true);
-                Debug.Log(hasPlayed);
-                currentTimeTask = 3f;
-                gameManager.isTask1Complete = true;
+                photonView.RPC("AttivaMaskPerTutti", RpcTarget.AllBuffered);
+                Debug.Log("Task 1 completata");
+
+                currentTimeTask = 0f;
+                playerController.isTask1Complete = true;
             }
         }
     }
@@ -49,13 +50,32 @@ public class Script1Task : MonoBehaviourPunCallbacks
     private IEnumerator Start()
     {
         animator = GetComponent<Animator>();
-
-        while (FindObjectOfType<Player_Controller>() == null)
+        Player_Controller[] players;
+        do
+        {
+            players = FindObjectsOfType<Player_Controller>();
             yield return null;
+        } while (players.Length == 0);
 
-        playerController = FindObjectOfType<Player_Controller>();
-        Debug.Log("playerController trovato: " + (playerController != null));
+        foreach (var p in players)
+        {
+            if (p.photonView.IsMine)
+            {
+                playerController = p;
+                break;
+            }
+        }
 
+        Debug.Log("playerController locale trovato: " + (playerController != null));
         gameManager = FindObjectOfType<GameManager>();
+    }
+
+    [PunRPC]
+    public void AttivaMaskPerTutti()
+    {
+        if (maskForTask1 != null)
+        {
+            maskForTask1.SetActive(true);
+        }
     }
 }

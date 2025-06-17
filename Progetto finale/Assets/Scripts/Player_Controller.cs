@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections;
-using Microsoft.Unity.VisualStudio.Editor;
 using Photon.Pun;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
-using Image = Microsoft.Unity.VisualStudio.Editor.Image;
 
 public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -35,6 +33,10 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     public bool isDead = false;
     public bool canDoTasks = true;
     public bool isPanel1Active = false;
+    public bool hasCountedTasks = false;
+    public bool isTask1Complete = false;
+    public bool isTask2Complete = false;
+    public bool isTask3Complete = false;
 
     public GameObject[] players;
     GameObject giocatorePiuVicino;
@@ -68,6 +70,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         Player_Controller playerScript = player.GetComponent<Player_Controller>();
         mainCamera = GetComponentInChildren<Camera>();
         mainCamera.enabled = true;
+        hasCountedTasks = false;
         if (mainCamera == null)
         {
             Debug.LogError("❌ mainCamera non trovata sul body!");
@@ -143,17 +146,17 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        if (gameManager.isTask1Complete == true && gameManager.isTask2Complete == true && gameManager.isTask3Complete == true)
-        {   
-            if (photonView.IsMine == true)
+        if (isTask1Complete && isTask2Complete && isTask3Complete && !hasCountedTasks)
+        {
+            if (photonView.IsMine)
             {
                 missionsPanel.SetActive(false);
                 GameManager.Instance.totalTasks += 3;
+                hasCountedTasks = true;
                 Debug.Log(GameManager.Instance.totalTasks + ": total tasks");
                 if (GameManager.Instance.totalTasks == GameManager.Instance.howManyTasksToWin)
                 {
                     photonView.RPC("ChangeScreen", RpcTarget.All);
-
                 }
             }
         }
@@ -306,6 +309,6 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     public void ChangeScreen()
     {
         InnocentsWon.SetActive(true);
-        GameManager.Instance.totalTasks = 0;      
+        GameManager.Instance.totalTasks = 0;
     }
 }

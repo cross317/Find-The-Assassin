@@ -1,0 +1,4 @@
+﻿[*.{cs,vb}]
+
+# IDE0044: Aggiungi modificatore readonly
+dotnet_style_readonly_field = true

@@ -112,7 +112,7 @@ public class Task3_Script : MonoBehaviourPunCallbacks
 
             playerController.isMainCameraLocked = false;
             canDisablePanelInventory = true;
-            gameManager.isTask3Complete = true;
+            playerController.isTask3Complete = true;
             animator.SetTrigger("Stop");
         }
         if (canDisablePanelInventory == true)

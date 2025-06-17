@@ -43,7 +43,7 @@ public class Script2Task : MonoBehaviourPunCallbacks
                 secondCamera.enabled = false;
                 canDisable = false;
                 photonView.RPC("CambiaColore2", RpcTarget.All);
-                gameManager.isTask2Complete = true;
+                playerController.isTask2Complete = true;
                 timeForCanDisable = 0f;
 
             }
