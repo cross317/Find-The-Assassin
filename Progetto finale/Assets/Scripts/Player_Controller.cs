@@ -20,7 +20,6 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] public GameObject panelForNotHavingGasCan;
     GameManager gameManager;
     [SerializeField] public Camera mainCamera;
-    [SerializeField] GameObject InnocentsWon;
 
     public bool isCollidingWithTask = false;
     public bool isCollidingWithTask2 = false;
@@ -154,7 +153,6 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
                 GameManager.Instance.totalTasks += 3;
                 hasCountedTasks = true;
                 Debug.Log(GameManager.Instance.totalTasks + ": total tasks");
-                photonView.RPC("ChangeScreen", RpcTarget.All);
             }
         }
 
@@ -168,10 +166,10 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        if (photonView.IsMine && players.Length <= 0 && PhotonNetwork.InRoom)
-        {
-            PhotonNetwork.LoadLevel("AssassinWon");
-        }
+        //if (photonView.IsMine && players.Length <= 0 && PhotonNetwork.InRoom)
+        //{
+        //    PhotonNetwork.LoadLevel("AssassinWon");
+        //}
     }
 
     private void FixedUpdate()
@@ -283,30 +281,6 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         }
         Debug.Log("Sei stato ucciso!");
         PhotonNetwork.Destroy(gameObject);
-    }
-
-    public void ReturnToMenu()
-    {
-        PhotonNetwork.AutomaticallySyncScene = false;
-        StartCoroutine(LoadMenuAfterLeaving());
-    }
-
-    private IEnumerator LoadMenuAfterLeaving()
-    {
-        PhotonNetwork.LeaveRoom();
-        while (PhotonNetwork.InRoom)
-        {
-            yield return null;
-        }
-
-        SceneManager.LoadScene("Menu");
-    }
-
-    [PunRPC]
-    public void ChangeScreen()
-    {
-        InnocentsWon.SetActive(true);
-        GameManager.Instance.totalTasks = 0;
     }
 
     public void CompleteTask1()

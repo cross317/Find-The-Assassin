@@ -46,6 +46,7 @@ MonoBehaviour:
   - OnKilled
   - ChangeScreen
   - AttivaMaskPerTutti
+  - ShowInnocentsWon
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

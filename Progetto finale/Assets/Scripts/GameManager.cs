@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviourPunCallbacks
 
@@ -11,7 +12,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     public bool canPlay;
     [SerializeField] List<Transform> spawns = new List<Transform>();
     public int howManyTasksToWin;
-    public int totalTasks;
+    public int totalTasks = 0;
+    [SerializeField] GameObject InnocentsWon;
+    private bool hasShownWinScreen = false;
 
     int randSpawn;
 
@@ -28,10 +31,12 @@ public class GameManager : MonoBehaviourPunCallbacks
     }
 
     private void Start()
-    {   
+    {
+        totalTasks = 0;
         if (PhotonNetwork.InRoom)
         {
             Debug.Log("In stanza: istanzio i player da Start()");
+            hasShownWinScreen = false;
             SpawnPlayers();
         }
         else
@@ -59,6 +64,12 @@ public class GameManager : MonoBehaviourPunCallbacks
                 howManyTasksToWin = 12;
                 break;
         }
+        if (!hasShownWinScreen && totalTasks >= howManyTasksToWin)
+        {
+            hasShownWinScreen = true;
+            photonView.RPC("ShowInnocentsWon", RpcTarget.All);
+        }
+
     }
         
     public void SpawnPlayers()
@@ -77,5 +88,27 @@ public class GameManager : MonoBehaviourPunCallbacks
                 Debug.LogError("Lista degli spawn è vuota!");
             }
         }
+    }
+
+    [PunRPC]
+    public void ShowInnocentsWon()
+    {
+        InnocentsWon.SetActive(true);
+    }
+
+    public void ReturnToMenu()
+    {
+        PhotonNetwork.AutomaticallySyncScene = false;
+        StartCoroutine(LoadMenuAfterLeaving());
+    }
+
+    private IEnumerator LoadMenuAfterLeaving()
+    {
+        PhotonNetwork.LeaveRoom();
+        while (PhotonNetwork.InRoom)
+        {
+            yield return null;
+        }
+        SceneManager.LoadScene("Menu");
     }
 }
