@@ -92,15 +92,14 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         rb = GetComponent<Rigidbody>();
         gameManager = FindObjectOfType<GameManager>();
 
-        //if (PhotonNetwork.IsMasterClient)
-        //{
-        //    isAssassin = true;
-        //}
-        // else
-        //{
-        //    isAssassin = false;
-        //}  
-        isAssassin = false;
+        if (PhotonNetwork.IsMasterClient)
+        { 
+            isAssassin = true;
+        }
+         else
+        {
+            isAssassin = false;
+        }  
         print(isAssassin + ": isAssassin");
 
         if (isAssassin == false)
@@ -165,11 +164,6 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
                 Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
             }
         }
-
-        //if (photonView.IsMine && players.Length <= 0 && PhotonNetwork.InRoom)
-        //{
-        //    PhotonNetwork.LoadLevel("AssassinWon");
-        //}
     }
 
     private void FixedUpdate()
@@ -280,6 +274,10 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             mainCamera.enabled = false;
         }
         Debug.Log("Sei stato ucciso!");
+        if (photonView.IsMine)
+        {
+            GameManager.Instance.PlayerDied();
+        }
         PhotonNetwork.Destroy(gameObject);
     }
 

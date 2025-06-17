@@ -15,8 +15,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     public int totalTasks = 0;
     [SerializeField] GameObject InnocentsWon;
     private bool hasShownWinScreen = false;
-
+    private PhotonView photonView;
     int randSpawn;
+    private int alivePlayers = 0;
 
     public static GameManager Instance { get; private set; }
 
@@ -28,15 +29,18 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
         Instance = this;
+        photonView = GetComponent<PhotonView>();
     }
 
     private void Start()
     {
         totalTasks = 0;
+
         if (PhotonNetwork.InRoom)
         {
             Debug.Log("In stanza: istanzio i player da Start()");
             hasShownWinScreen = false;
+            alivePlayers = PhotonNetwork.CurrentRoom.PlayerCount;
             SpawnPlayers();
         }
         else
@@ -51,17 +55,14 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         switch (playerCount)
         {
-            case 1:
+            case 2:
                 howManyTasksToWin = 3;
                 break;
-            case 2:
+            case 3:
                 howManyTasksToWin = 6;
                 break;
-            case 3:
-                howManyTasksToWin = 9;
-                break;
             case 4:
-                howManyTasksToWin = 12;
+                howManyTasksToWin = 9;
                 break;
         }
         if (!hasShownWinScreen && totalTasks >= howManyTasksToWin)
@@ -90,10 +91,27 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public void PlayerDied()
+    {
+        alivePlayers--;
+        Debug.Log("Player morto. Rimasti: " + alivePlayers);
+
+        if (!hasShownWinScreen && alivePlayers <= 1)
+        {
+            hasShownWinScreen = true;
+            photonView.RPC("ShowAssassinWon", RpcTarget.All);
+        }
+    }
+
     [PunRPC]
     public void ShowInnocentsWon()
     {
         InnocentsWon.SetActive(true);
+    }
+    [PunRPC]
+    public void ShowAssassinWon()
+    {
+        PhotonNetwork.LoadLevel("AssassinWon");
     }
 
     public void ReturnToMenu()
