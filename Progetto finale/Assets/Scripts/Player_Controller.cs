@@ -9,8 +9,6 @@ using UnityEngine.UIElements;
 
 public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 {
-
-
     Vector3 direction;
     public float speed = 100f;
     [SerializeField] public GameObject player;
@@ -60,24 +58,26 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
     private void Start()
     {
-
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().enabled = false;
         }
         player = gameObject;
-
+        isTask1Complete = false;
+        isTask2Complete = false;
+        isTask3Complete = false;
         Player_Controller playerScript = player.GetComponent<Player_Controller>();
         mainCamera = GetComponentInChildren<Camera>();
         mainCamera.enabled = true;
         hasCountedTasks = false;
+        ReferenceMaager.Instance.CreateTask1ForPlayer(this);
         if (mainCamera == null)
         {
-            Debug.LogError("❌ mainCamera non trovata sul body!");
+            Debug.LogError("mainCamera non trovata sul body!");
         }
         else
         {
-            Debug.Log("✅ mainCamera trovata correttamente!");
+            Debug.Log("mainCamera trovata correttamente!");
             mainCamera.enabled = photonView.IsMine;
         }
 
@@ -154,10 +154,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
                 GameManager.Instance.totalTasks += 3;
                 hasCountedTasks = true;
                 Debug.Log(GameManager.Instance.totalTasks + ": total tasks");
-                if (GameManager.Instance.totalTasks == GameManager.Instance.howManyTasksToWin)
-                {
-                    photonView.RPC("ChangeScreen", RpcTarget.All);
-                }
+                photonView.RPC("ChangeScreen", RpcTarget.All);
             }
         }
 
@@ -310,5 +307,20 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     {
         InnocentsWon.SetActive(true);
         GameManager.Instance.totalTasks = 0;
+    }
+
+    public void CompleteTask1()
+    {
+        isTask1Complete = true;
+    }
+
+    public void CompleteTask2()
+    {
+        isTask2Complete = true;
+    }
+
+    public void CompleteTask3()
+    {
+        isTask3Complete = true;
     }
 }

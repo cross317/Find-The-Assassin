@@ -18,10 +18,10 @@ public class Task3_Script : MonoBehaviourPunCallbacks
     public bool canDisablePanelInventory = false;
     private bool isRunningTask3 = false;
     public bool canChangeCamera = true;
+    public bool isTask3Completed = false;
 
     private IEnumerator Start()
     {
-        // Aspetta che il player venga instanziato
         while (FindObjectOfType<Player_Controller>() == null)
             yield return null;
 
@@ -42,6 +42,7 @@ public class Task3_Script : MonoBehaviourPunCallbacks
 
         playerController.mainCamera.enabled = true;
         thirdCamera.enabled = false;
+        isTask3Completed = false;
 
         Debug.Log("Task3 inizializzato correttamente.");
     }
@@ -73,7 +74,7 @@ public class Task3_Script : MonoBehaviourPunCallbacks
         }
         if (canDoTask3 == true && playerController.isCollidingWithTask3 == true && Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
         {
-            if (!playerController.isMainCameraLocked)
+            if (!playerController.isMainCameraLocked && !isTask3Completed)
             {
                 isMainCameraActive = false;
                 isRunningTask3 = true; 
@@ -103,6 +104,7 @@ public class Task3_Script : MonoBehaviourPunCallbacks
                 {
                     playerController.mainCamera.enabled = true;
                     canChangeCamera = false;
+                    canDoTask3 = false;
                 }
                 if (canChangeCamera == false)
                 {
@@ -112,7 +114,9 @@ public class Task3_Script : MonoBehaviourPunCallbacks
 
             playerController.isMainCameraLocked = false;
             canDisablePanelInventory = true;
-            playerController.isTask3Complete = true;
+            //canDoTask3 = false;
+            playerController.CompleteTask3();
+            isTask3Completed = true;
             animator.SetTrigger("Stop");
         }
         if (canDisablePanelInventory == true)

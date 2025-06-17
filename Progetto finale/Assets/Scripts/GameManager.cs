@@ -49,11 +49,14 @@ public class GameManager : MonoBehaviourPunCallbacks
             case 1:
                 howManyTasksToWin = 3;
                 break;
-            case 3:
+            case 2:
                 howManyTasksToWin = 6;
                 break;
-            case 4:
+            case 3:
                 howManyTasksToWin = 9;
+                break;
+            case 4:
+                howManyTasksToWin = 12;
                 break;
         }
     }

@@ -103471,6 +103471,10 @@ MonoBehaviour:
   isDead: 0
   canDoTasks: 1
   isPanel1Active: 0
+  hasCountedTasks: 0
+  isTask1Complete: 0
+  isTask2Complete: 0
+  isTask3Complete: 0
   players: []
   canPlay: 0
   isMainCameraLocked: 0

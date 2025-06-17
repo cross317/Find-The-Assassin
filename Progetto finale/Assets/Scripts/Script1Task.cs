@@ -10,7 +10,6 @@ public class Script1Task : MonoBehaviourPunCallbacks
     Player_Controller playerController;
 
     [SerializeField] float timeTask;
-    [SerializeField] GameObject maskForTask1;
 
     public bool hasPlayed = false;
     public float currentTimeTask;
@@ -23,7 +22,6 @@ public class Script1Task : MonoBehaviourPunCallbacks
         {
             if (Input.GetKeyDown(KeyCode.E) && !hasPlayed)
             {
-                Debug.Log("Tasto E premuto in " + gameObject.name);
                 animator.SetTrigger("PlayOnce");
                 hasPlayed = true;
                 GameManager.Instance.canPlay = false;
@@ -38,44 +36,30 @@ public class Script1Task : MonoBehaviourPunCallbacks
             {
                 animator.SetTrigger("Stop");
                 GameManager.Instance.canPlay = true;
-                photonView.RPC("AttivaMaskPerTutti", RpcTarget.AllBuffered);
                 Debug.Log("Task 1 completata");
 
                 currentTimeTask = 0f;
-                playerController.isTask1Complete = true;
+                playerController.CompleteTask1();
             }
         }
     }
 
     private IEnumerator Start()
     {
-        animator = GetComponent<Animator>();
-        Player_Controller[] players;
-        do
+        while (playerController == null)
         {
-            players = FindObjectsOfType<Player_Controller>();
+            playerController = FindObjectOfType<Player_Controller>();
             yield return null;
-        } while (players.Length == 0);
-
-        foreach (var p in players)
-        {
-            if (p.photonView.IsMine)
-            {
-                playerController = p;
-                break;
-            }
         }
 
         Debug.Log("playerController locale trovato: " + (playerController != null));
+
         gameManager = FindObjectOfType<GameManager>();
+        hasPlayed = false;
     }
 
-    [PunRPC]
-    public void AttivaMaskPerTutti()
+    public void AssignPlayer(Player_Controller controller)
     {
-        if (maskForTask1 != null)
-        {
-            maskForTask1.SetActive(true);
-        }
+        playerController = controller;
     }
 }
