@@ -68956,7 +68956,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3021612246274610019}
   m_LocalRotation: {x: 0.7071069, y: 1.6370903e-11, z: 3.0695443e-11, w: 0.70710677}
-  m_LocalPosition: {x: 0.000015256335, y: 0, z: -0.000015309612}
+  m_LocalPosition: {x: -0.0072021475, y: 0.000006619141, z: -0.000015712872}
   m_LocalScale: {x: 2, y: 2, z: 1.7600473}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -103032,10 +103032,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 5.946724
-  m_Height: 12.918787
+  m_Radius: 6.59066
+  m_Height: 14.128236
   m_Direction: 1
-  m_Center: {x: 6.6937003, y: 6.1058197, z: -6.818705}
+  m_Center: {x: 6.5621676, y: 6.105888, z: -6.7930293}
 --- !u!114 &7672041489159056633
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103057,6 +103057,7 @@ MonoBehaviour:
   panelForInventory1: {fileID: 603594813615056601}
   panelForNotHavingGasCan: {fileID: 2301022720033065438}
   mainCamera: {fileID: 3178676357316259746}
+  distanzaMinima: 50
   isCollidingWithTask: 0
   isCollidingWithTask2: 0
   isCollidingWithCan: 0
@@ -103090,8 +103091,9 @@ MonoBehaviour:
   prefixField: -1
   Synchronization: 3
   OwnershipTransfer: 0
-  observableSearch: 0
+  observableSearch: 2
   ObservedComponents:
+  - {fileID: 7672041489159056633}
   - {fileID: 5597446289718236209}
   sceneViewId: 0
   InstantiationId: 0

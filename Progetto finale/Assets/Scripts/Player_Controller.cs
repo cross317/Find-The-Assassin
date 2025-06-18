@@ -20,6 +20,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField] public GameObject panelForNotHavingGasCan;
     GameManager gameManager;
     [SerializeField] public Camera mainCamera;
+    [SerializeField] float distanzaMinima = 4f;
 
     public bool isCollidingWithTask = false;
     public bool isCollidingWithTask2 = false;
@@ -157,7 +158,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
         if (isAssassin == true)
         {
-            if (Input.GetMouseButtonDown(0) && isCollidingWithPlayer == true)
+            if (Input.GetMouseButtonDown(0))
             {
                 Attack();
                 Debug.Log("isDead =" + isDead);
@@ -239,46 +240,57 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
     public void Attack()
     {
-        players = GameObject.FindGameObjectsWithTag("Player");
+        if (!photonView.IsMine || !isAssassin) return;
 
-        GameObject target = null;
-        float distanzaMinima = 35f;
+        Player_Controller target = null;
 
-        foreach (GameObject p in players)
+        foreach (Player_Controller other in FindObjectsOfType<Player_Controller>())
         {
-            if (p == this.gameObject) continue;
+            if (other == this || other.isDead || other.isAssassin) continue;
 
-            float distanza = Vector3.Distance(transform.position, p.transform.position);
+            float distanza = Vector3.Distance(transform.position, other.transform.position);
             if (distanza < distanzaMinima)
             {
                 distanzaMinima = distanza;
-                target = p;
+                target = other;
             }
         }
+
         if (target != null)
         {
             PhotonView targetPV = target.GetComponent<PhotonView>();
-
             if (targetPV != null)
             {
-                targetPV.RPC("OnKilled", targetPV.Owner);
-                Debug.Log("Ucciso: " + target.name);
+                if (!target.isDead)
+                {
+                    targetPV.RPC("OnKilled", targetPV.Owner);
+                    Debug.Log($"[Attack] Ucciso: {targetPV.Owner.ActorNumber}");
+                }
             }
         }
+        else
+        {
+            Debug.Log("[Attack] Nessun bersaglio valido nel raggio");
+        }
     }
+
     [PunRPC]
     public void OnKilled()
     {
+        isDead = true;
+
         if (mainCamera != null)
         {
             mainCamera.enabled = false;
         }
+
         Debug.Log("Sei stato ucciso!");
+
         if (photonView.IsMine)
         {
             GameManager.Instance.PlayerDied();
+            photonView.RPC("DestroyPlayerRPC", RpcTarget.MasterClient, photonView.ViewID);
         }
-        PhotonNetwork.Destroy(gameObject);
     }
 
     public void CompleteTask1()
@@ -294,5 +306,15 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     public void CompleteTask3()
     {
         isTask3Complete = true;
+    }
+
+    [PunRPC]
+    public void DestroyPlayerRPC(int viewID)
+    {
+        PhotonView targetView = PhotonView.Find(viewID);
+        if (targetView != null)
+        {
+            PhotonNetwork.Destroy(targetView.gameObject);
+        }
     }
 }

@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public int totalTasks = 0;
     [SerializeField] GameObject InnocentsWon;
     private bool hasShownWinScreen = false;
-    private PhotonView photonView;
+    private new PhotonView photonView;
     int randSpawn;
     private int alivePlayers = 0;
 
@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             hasShownWinScreen = false;
             alivePlayers = PhotonNetwork.CurrentRoom.PlayerCount;
             SpawnPlayers();
+            StartCoroutine(AssignAssassinDelayed());
         }
         else
         {
@@ -55,6 +56,9 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         switch (playerCount)
         {
+            case 1:
+                howManyTasksToWin = 3;
+                break;
             case 2:
                 howManyTasksToWin = 3;
                 break;
@@ -128,5 +132,44 @@ public class GameManager : MonoBehaviourPunCallbacks
             yield return null;
         }
         SceneManager.LoadScene("Menu");
+    }
+
+    [PunRPC]
+    public void AssignAssassin(int actorNumber)
+    {
+        foreach (var player in FindObjectsOfType<Player_Controller>())
+        {
+            if (player.photonView.Owner.ActorNumber == actorNumber)
+            {
+                player.isAssassin = true;
+                player.tag = "Assassin";
+                player.canDoTasks = false;
+                Debug.Log($"[GameManager] Questo player è l’ASSASSINO: {actorNumber}");
+            }
+            else
+            {
+                player.isAssassin = false;
+                player.tag = "Player";
+                player.canDoTasks = true;
+                Debug.Log($"[GameManager] Questo player è INNOCENTE: {player.photonView.Owner.ActorNumber}");
+            }
+        }
+    }
+    private IEnumerator AssignAssassinDelayed()
+    {
+        yield return new WaitForSeconds(1.5f);
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            int randomActorNumber = GetRandomPlayerActorNumber();
+            photonView.RPC("AssignAssassin", RpcTarget.All, randomActorNumber);
+        }
+    }
+
+    private int GetRandomPlayerActorNumber()
+    {
+        List<Photon.Realtime.Player> players = new List<Photon.Realtime.Player>(PhotonNetwork.PlayerList);
+        int index = Random.Range(0, players.Count);
+        return players[index].ActorNumber;
     }
 }
