@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
+using ExitGames.Client.Photon;
+using Mono.Cecil.Cil;
 using Photon.Pun;
+using Photon.Realtime;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -58,64 +61,63 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
     private void Start()
     {
-        if (!photonView.IsMine)
-        {
-            GetComponentInChildren<Camera>().enabled = false;
-        }
         player = gameObject;
-        isTask1Complete = false;
-        isTask2Complete = false;
-        isTask3Complete = false;
-        Player_Controller playerScript = player.GetComponent<Player_Controller>();
-        mainCamera = GetComponentInChildren<Camera>();
-        mainCamera.enabled = true;
-        hasCountedTasks = false;
-        ReferenceMaager.Instance.CreateTask1ForPlayer(this);
-        if (mainCamera == null)
-        {
-            Debug.LogError("mainCamera non trovata sul body!");
-        }
-        else
-        {
-            Debug.Log("mainCamera trovata correttamente!");
-            mainCamera.enabled = photonView.IsMine;
-        }
-
-        if (playerScript != null)
-        {
-            playerScript.canPlay = true;
-        }
-        else
-        {
-            Debug.LogError("PlayerScript non trovato sul prefab instanziato!");
-        }
-
         rb = GetComponent<Rigidbody>();
         gameManager = FindObjectOfType<GameManager>();
 
-        if (PhotonNetwork.IsMasterClient)
-        { 
-            isAssassin = true;
-        }
-         else
-        {
-            isAssassin = false;
-        }  
-        print(isAssassin + ": isAssassin");
+        isTask1Complete = false;
+        isTask2Complete = false;
+        isTask3Complete = false;
+        hasCountedTasks = false;
 
-        if (isAssassin == false)
+        if (!photonView.IsMine)
         {
-            player.tag = "Player";
-            canDoTasks = true;
-            Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+            if (mainCamera != null)
+                mainCamera.enabled = false;
+
+            if (panelPlayerUseTask != null)
+                panelPlayerUseTask.SetActive(false);
+
+            if (map != null)
+                map.SetActive(false);
+
+            if (missionsPanel != null)
+                missionsPanel.SetActive(false);
+
+            return;
         }
-        if (isAssassin == true)
+
+        StartCoroutine(InitCamera());
+
+        if (missionsPanel != null)
+            missionsPanel.SetActive(false);
+
+        if (ReferenceManager.Instance != null)
+        {
+            ReferenceManager.Instance.CreateTask1ForPlayer(this);
+        }
+        else
+        {
+            Debug.LogWarning("ReferenceManager non trovato!");
+        }
+
+        if (isAssassin)
         {
             player.tag = "Assassin";
             canDoTasks = false;
-            Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+            missionsPanel.SetActive(false);
+            Debug.Log("Ruolo attuale: Assassin");
         }
+        else
+        {
+            player.tag = "Player";
+            canDoTasks = true;
+            missionsPanel.SetActive(true);
+            Debug.Log("Ruolo attuale: Player");
+        }
+
         players = GameObject.FindGameObjectsWithTag("Player");
+        canPlay = true;
     }
 
     public void Update()
@@ -230,7 +232,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         }
         if (collision.gameObject.CompareTag("GasCan"))
         {
-            isCollidingWithCan = true;
+            isCollidingWithCan = false;
         }
         if (collision.gameObject.CompareTag("Player"))
         {
@@ -243,15 +245,16 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         if (!photonView.IsMine || !isAssassin) return;
 
         Player_Controller target = null;
+        float minDistance = distanzaMinima;
 
         foreach (Player_Controller other in FindObjectsOfType<Player_Controller>())
         {
             if (other == this || other.isDead || other.isAssassin) continue;
 
             float distanza = Vector3.Distance(transform.position, other.transform.position);
-            if (distanza < distanzaMinima)
+            if (distanza < minDistance)
             {
-                distanzaMinima = distanza;
+                minDistance = distanza;
                 target = other;
             }
         }
@@ -286,10 +289,10 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
         Debug.Log("Sei stato ucciso!");
 
-        if (photonView.IsMine)
+        if (photonView != null && photonView.IsMine)
         {
             GameManager.Instance.PlayerDied();
-            photonView.RPC("DestroyPlayerRPC", RpcTarget.MasterClient, photonView.ViewID);
+            photonView.RPC("DestroyPlayerRPC", RpcTarget.All, photonView.ViewID);
         }
     }
 
@@ -315,6 +318,27 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         if (targetView != null)
         {
             PhotonNetwork.Destroy(targetView.gameObject);
+        }
+        else
+        {
+            Debug.LogWarning($"[DestroyPlayerRPC] PhotonView {viewID} non trovato");
+        }
+    }
+
+    private IEnumerator InitCamera()
+    {
+        yield return new WaitUntil(() => GetComponentInChildren<Camera>() != null);
+
+        mainCamera = GetComponentInChildren<Camera>();
+
+        if (mainCamera != null)
+        {
+            mainCamera.enabled = photonView.IsMine;
+            Debug.Log($"mainCamera trovata e {(photonView.IsMine ? "attivata" : "disattivata")} correttamente!");
+        }
+        else
+        {
+            Debug.LogError("mainCamera ancora non trovata!");
         }
     }
 }

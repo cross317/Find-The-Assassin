@@ -6,9 +6,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ReferenceMaager : MonoBehaviourPunCallbacks
+public class ReferenceManager : MonoBehaviourPunCallbacks
 {
-    public static ReferenceMaager Instance { get; private set; }
+    public static ReferenceManager Instance { get; private set; }
     private void Awake()
     {
         if (Instance != null && Instance != this)

@@ -25,7 +25,14 @@ public class Task3_Script : MonoBehaviourPunCallbacks
         while (FindObjectOfType<Player_Controller>() == null)
             yield return null;
 
-        playerController = FindObjectOfType<Player_Controller>();
+        foreach (var pc in FindObjectsOfType<Player_Controller>())
+        {
+            if (pc.photonView.IsMine)
+            {
+                playerController = pc;
+                break;
+            }
+        }
         gameManager = FindObjectOfType<GameManager>();
 
         if (playerController == null)

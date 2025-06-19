@@ -17,6 +17,8 @@ public class Script2Task : MonoBehaviourPunCallbacks
 
     private void Update()
     {
+        if (playerController == null || playerController.mainCamera == null) return;
+
         if (playerController.isCollidingWithTask2)
         {
             if (Input.GetKeyDown(KeyCode.E) && playerController.canDoTasks == true)
