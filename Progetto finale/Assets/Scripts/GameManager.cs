@@ -153,33 +153,17 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void OnReturnToMenuButtonClick()
     {
-        StartCoroutine(ReturnToMenu());
+        ReturnToMenu();
     }
 
-    public IEnumerator ReturnToMenu()
+    public void ReturnToMenu()
     {
-        string currentScene = SceneManager.GetActiveScene().name;
+        PhotonNetwork.LeaveRoom();
+    }
 
-        if (currentScene == "Menu") yield break;
-
-        PhotonNetwork.AutomaticallySyncScene = false;
-
-        if (PhotonNetwork.InRoom)
-            PhotonNetwork.LeaveRoom();
-
-        float timeout = 5f;
-        float timer = 0f;
-        while (PhotonNetwork.InRoom && timer < timeout)
-        {
-            timer += Time.deltaTime;
-            yield return null;
-        }
-
+    public override void OnLeftRoom()
+    {
         SceneManager.LoadScene("Menu");
-
-        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == "Menu");
-
-        Debug.Log("[ReturnToMenu] Rientrato correttamente nel Menu.");
     }
 
     [PunRPC]
