@@ -151,33 +151,35 @@ public class GameManager : MonoBehaviourPunCallbacks
         AssassinWon.SetActive(true);
     }
 
-    public void ReturnToMenu()
+    public void OnReturnToMenuButtonClick()
     {
-        PhotonNetwork.AutomaticallySyncScene = false;
-        StartCoroutine(LoadMenuAfterLeaving());
+        StartCoroutine(ReturnToMenu());
     }
 
-    private IEnumerator LoadMenuAfterLeaving()
+    public IEnumerator ReturnToMenu()
     {
-        if (SceneManager.GetActiveScene().name == "Menu")
-            yield break;
+        string currentScene = SceneManager.GetActiveScene().name;
 
-        PhotonNetwork.LeaveRoom();
+        if (currentScene == "Menu") yield break;
 
-        while (PhotonNetwork.InRoom)
+        PhotonNetwork.AutomaticallySyncScene = false;
+
+        if (PhotonNetwork.InRoom)
+            PhotonNetwork.LeaveRoom();
+
+        float timeout = 5f;
+        float timer = 0f;
+        while (PhotonNetwork.InRoom && timer < timeout)
+        {
+            timer += Time.deltaTime;
             yield return null;
-
-        while (PhotonNetwork.NetworkClientState == ClientState.DisconnectingFromGameServer)
-            yield return null;
-
-        while (PhotonNetwork.IsConnected)
-
-        PhotonNetwork.ConnectUsingSettings();
-
-        while (PhotonNetwork.NetworkClientState != ClientState.ConnectedToMasterServer)
-            yield return null;
+        }
 
         SceneManager.LoadScene("Menu");
+
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == "Menu");
+
+        Debug.Log("[ReturnToMenu] Rientrato correttamente nel Menu.");
     }
 
     [PunRPC]
