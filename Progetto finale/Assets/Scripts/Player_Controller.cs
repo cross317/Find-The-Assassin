@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using ExitGames.Client.Photon;
-using Mono.Cecil.Cil;
 using Photon.Pun;
 using Photon.Realtime;
 using Unity.VisualScripting;
@@ -276,24 +275,47 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             Debug.Log("[Attack] Nessun bersaglio valido nel raggio");
         }
     }
-
     [PunRPC]
     public void OnKilled()
     {
+        if (isDead) return;
         isDead = true;
-
-        if (mainCamera != null)
-        {
-            mainCamera.enabled = false;
-        }
+        gameObject.tag = "Spectator";
 
         Debug.Log("Sei stato ucciso!");
 
-        if (photonView != null && photonView.IsMine)
+        if (photonView.IsMine)
         {
             GameManager.Instance.PlayerDied();
-            photonView.RPC("DestroyPlayerRPC", RpcTarget.All, photonView.ViewID);
+
+            photonView.RPC("HidePlayerBody", RpcTarget.AllBuffered);
+
+            mainCamera.transform.SetParent(null);
+            mainCamera.gameObject.SetActive(true);
+            rb.velocity = Vector3.zero;
+            if (missionsPanel != null) missionsPanel.SetActive(false);
+            if (map != null) map.SetActive(false);
+            if (panelPlayerUseTask != null) panelPlayerUseTask.SetActive(false);
+            if (panelForInventory1 != null) panelForInventory1.SetActive(false);
+            if (panelForNotHavingGasCan != null) panelForNotHavingGasCan.SetActive(false);
+
+            foreach (MonoBehaviour comp in GetComponents<MonoBehaviour>())
+            {
+                if (comp != this) comp.enabled = false;
+            }
+
+            StartCoroutine(FollowOtherPlayerAsCamera());
         }
+    }
+
+    [PunRPC]
+    public void HidePlayerBody()
+    {
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+            r.enabled = false;
+
+        foreach (Collider c in GetComponentsInChildren<Collider>())
+            c.enabled = false;
     }
 
     public void CompleteTask1()
@@ -314,10 +336,17 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     public void DestroyPlayerRPC(int viewID)
     {
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            Debug.LogWarning("Solo il MasterClient può distruggere gli oggetti Photon.");
+            return;
+        }
+
         PhotonView targetView = PhotonView.Find(viewID);
         if (targetView != null)
         {
             PhotonNetwork.Destroy(targetView.gameObject);
+            Debug.Log($"[DestroyPlayerRPC] Oggetto distrutto dal MasterClient (ViewID: {viewID})");
         }
         else
         {
@@ -340,5 +369,74 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         {
             Debug.LogError("mainCamera ancora non trovata!");
         }
+    }
+
+    private IEnumerator FollowOtherPlayerAsCamera()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        Player_Controller[] players = FindObjectsOfType<Player_Controller>();
+
+        foreach (var p in players)
+        {
+            if (p != this && !p.isDead)
+            {
+                Debug.Log("[Spettatore] Sto seguendo il player " + p.photonView.Owner.NickName);
+
+                if (mainCamera != null)
+                {
+                    mainCamera.enabled = true;
+                    mainCamera.transform.SetParent(null);
+                    StartCoroutine(FollowTarget(p.transform));
+                }
+
+                yield break;
+            }
+        }
+
+        Debug.Log("[Spettatore] Nessun giocatore vivo trovato da seguire.");
+    }
+
+    private IEnumerator FollowTarget(Transform target)
+    {
+        while (target != null)
+        {
+            Vector3 behind = target.position + new Vector3(0, 5, -5);
+            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, behind, Time.deltaTime * 5);
+            mainCamera.transform.LookAt(target);
+            yield return null;
+        }
+    }
+
+    [PunRPC]
+    public void ResetPlayer()
+    {
+        isDead = false;
+        canDoTasks = !isAssassin;
+        hasCountedTasks = false;
+        isTask1Complete = false;
+        isTask2Complete = false;
+        isTask3Complete = false;
+
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+            r.enabled = true;
+
+        foreach (Collider c in GetComponentsInChildren<Collider>())
+            c.enabled = true;
+
+        gameObject.tag = isAssassin ? "Assassin" : "Player";
+
+        if (photonView.IsMine)
+        {
+            if (missionsPanel != null) missionsPanel.SetActive(!isAssassin);
+            if (map != null) map.SetActive(false);
+            if (panelPlayerUseTask != null) panelPlayerUseTask.SetActive(false);
+            if (panelForInventory1 != null) panelForInventory1.SetActive(false);
+            if (panelForNotHavingGasCan != null) panelForNotHavingGasCan.SetActive(false);
+
+            StartCoroutine(InitCamera());
+        }
+
+        Debug.Log("Player reset completato");
     }
 }

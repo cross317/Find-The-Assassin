@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,6 +15,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public int howManyTasksToWin;
     public int totalTasks = 0;
     [SerializeField] GameObject InnocentsWon;
+    [SerializeField] GameObject AssassinWon;
     private bool hasShownWinScreen = false;
     private PhotonView photonView;
     int randSpawn;
@@ -100,6 +102,11 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         task1 = FindObjectOfType<Script1Task>();
         task2 = FindObjectOfType<Script2Task>();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            ResetAllPlayers();
+        }
     }
 
     public void SpawnPlayers()
@@ -141,7 +148,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void ShowAssassinWon()
     {
-        PhotonNetwork.LoadLevel("AssassinWon");
+        AssassinWon.SetActive(true);
     }
 
     public void ReturnToMenu()
@@ -153,22 +160,25 @@ public class GameManager : MonoBehaviourPunCallbacks
     private IEnumerator LoadMenuAfterLeaving()
     {
         if (SceneManager.GetActiveScene().name == "Menu")
-        {
             yield break;
-        }
 
         PhotonNetwork.LeaveRoom();
 
         while (PhotonNetwork.InRoom)
-        {
             yield return null;
-        }
 
-        yield return null;
+        while (PhotonNetwork.NetworkClientState == ClientState.DisconnectingFromGameServer)
+            yield return null;
+
+        while (PhotonNetwork.IsConnected)
+
+        PhotonNetwork.ConnectUsingSettings();
+
+        while (PhotonNetwork.NetworkClientState != ClientState.ConnectedToMasterServer)
+            yield return null;
 
         SceneManager.LoadScene("Menu");
     }
-
 
     [PunRPC]
     public void AssignAssassin(int actorNumber)
@@ -208,5 +218,13 @@ public class GameManager : MonoBehaviourPunCallbacks
         List<Photon.Realtime.Player> players = new List<Photon.Realtime.Player>(PhotonNetwork.PlayerList);
         int index = Random.Range(0, players.Count);
         return players[index].ActorNumber;
+    }
+
+    public void ResetAllPlayers()
+    {
+        foreach (Player_Controller p in FindObjectsOfType<Player_Controller>())
+        {
+            p.photonView.RPC("ResetPlayer", p.photonView.Owner);
+        }
     }
 }

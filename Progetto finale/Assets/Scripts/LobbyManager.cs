@@ -60,8 +60,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void LeaveRoom()
     {
-        PhotonNetwork.LeaveRoom();
-       
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+            PhotonNetwork.CurrentRoom.IsVisible = false;
+        }
+        if (PhotonNetwork.IsConnectedAndReady) PhotonNetwork.LeaveRoom();
     }
 
     public override void OnLeftRoom()

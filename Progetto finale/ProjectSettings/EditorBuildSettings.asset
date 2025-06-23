@@ -14,7 +14,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/FinalUnityProject.unity
     guid: 7d6eb87be3a943a49baa965ae3137548
-  - enabled: 1
-    path: Assets/AssassinWon.unity
-    guid: 01a94f20fe408704ba4b78e3d55849f7
   m_configObjects: {}
