@@ -76,13 +76,20 @@ public class GameManager : MonoBehaviourPunCallbacks
                 howManyTasksToWin = 9;
                 break;
         }
-        if (!hasShownWinScreen && totalTasks >= howManyTasksToWin)
+    }
+
+    [PunRPC]
+    public void ReportTasksCompleted()
+    {
+        totalTasks += 3;
+        Debug.Log("RPC ricevuto: totalTasks = " + totalTasks);
+
+        if (totalTasks >= howManyTasksToWin && !gameEnded)
         {
             hasShownWinScreen = true;
             gameEnded = true;
             photonView.RPC("ShowInnocentsWon", RpcTarget.All);
         }
-
     }
 
     private IEnumerator WaitForPhotonAndSpawn()
@@ -129,15 +136,27 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void PlayerDied()
     {
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("NotifyPlayerDied", RpcTarget.MasterClient);
+            return;
+        }
+
         alivePlayers--;
         Debug.Log("Player morto. Rimasti: " + alivePlayers);
 
-        if (!hasShownWinScreen && alivePlayers <= 1)
+        if (alivePlayers <= 1 && !gameEnded)
         {
             hasShownWinScreen = true;
             gameEnded = true;
             photonView.RPC("ShowAssassinWon", RpcTarget.All);
         }
+    }
+
+    [PunRPC]
+    public void NotifyPlayerDied()
+    {
+        PlayerDied(); 
     }
 
     [PunRPC]

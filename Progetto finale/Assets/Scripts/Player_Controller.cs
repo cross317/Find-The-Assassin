@@ -151,9 +151,8 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             if (photonView.IsMine)
             {
                 missionsPanel.SetActive(false);
-                GameManager.Instance.totalTasks += 3;
                 hasCountedTasks = true;
-                Debug.Log(GameManager.Instance.totalTasks + ": total tasks");
+                GameManager.Instance.photonView.RPC("ReportTasksCompleted", RpcTarget.MasterClient);
             }
         }
 
@@ -281,13 +280,11 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         if (isDead) return;
         isDead = true;
         gameObject.tag = "Spectator";
-
         Debug.Log("Sei stato ucciso!");
+        GameManager.Instance.PlayerDied();
 
         if (photonView.IsMine)
         {
-            GameManager.Instance.PlayerDied();
-
             photonView.RPC("HidePlayerBody", RpcTarget.AllBuffered);
 
             mainCamera.transform.SetParent(null);
@@ -375,37 +372,60 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     {
         yield return new WaitForSeconds(0.5f);
 
-        Player_Controller[] players = FindObjectsOfType<Player_Controller>();
+        if (mainCamera == null)
+        {
+            mainCamera = GetComponentInChildren<Camera>();
+        }
 
+        Player_Controller[] players = FindObjectsOfType<Player_Controller>();
         foreach (var p in players)
         {
             if (p != this && !p.isDead)
             {
                 Debug.Log("[Spettatore] Sto seguendo il player " + p.photonView.Owner.NickName);
+                mainCamera.enabled = true;
+                mainCamera.gameObject.SetActive(true);
+                mainCamera.transform.SetParent(null);
 
-                if (mainCamera != null)
-                {
-                    mainCamera.enabled = true;
-                    mainCamera.transform.SetParent(null);
-                    StartCoroutine(FollowTarget(p.transform));
-                }
-
+                StartCoroutine(FollowTarget(p.transform));
                 yield break;
             }
         }
 
-        Debug.Log("[Spettatore] Nessun giocatore vivo trovato da seguire.");
+        Debug.LogWarning("[Spettatore] Nessun giocatore vivo trovato.");
+        mainCamera.transform.position = new Vector3(0, 20, 0);
+        mainCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
+        mainCamera.enabled = true;
     }
+
 
     private IEnumerator FollowTarget(Transform target)
     {
+        if (target == null || mainCamera == null)
+        {
+            Debug.LogError("FollowTarget: target o camera mancante");
+            yield break;
+        }
+
+        Vector3 offset = new Vector3(0, 6, -6);
+        float smoothSpeed = 6f;
+
+        Vector3 startPos = target.position + offset;
+        mainCamera.transform.position = startPos;
+        mainCamera.transform.LookAt(target);
+
         while (target != null)
         {
-            Vector3 behind = target.position + new Vector3(0, 5, -5);
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, behind, Time.deltaTime * 5);
+            Vector3 desiredPos = target.position + offset;
+            Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, desiredPos, Time.deltaTime * smoothSpeed);
+
+            mainCamera.transform.position = smoothedPos;
             mainCamera.transform.LookAt(target);
+
             yield return null;
         }
+
+        Debug.LogWarning("FollowTarget terminato: target distrutto o nullo.");
     }
 
     [PunRPC]
