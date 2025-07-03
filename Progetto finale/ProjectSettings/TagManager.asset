@@ -10,7 +10,6 @@ TagManager:
   - task3
   - GasCan
   - Assassin
-  - Spectator
   layers:
   - Default
   - TransparentFX

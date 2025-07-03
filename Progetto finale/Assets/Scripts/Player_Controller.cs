@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections;
-using ExitGames.Client.Photon;
+﻿using System.Collections;
 using Photon.Pun;
-using Photon.Realtime;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
+using TMPro;
 
 public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 {
@@ -23,6 +18,8 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     GameManager gameManager;
     [SerializeField] public Camera mainCamera;
     [SerializeField] float distanzaMinima = 4f;
+    [SerializeField] GameObject panelForAssassinKill;
+    [SerializeField] TMP_Text textToKill;
 
     public bool isCollidingWithTask = false;
     public bool isCollidingWithTask2 = false;
@@ -37,6 +34,8 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     public bool isTask1Complete = false;
     public bool isTask2Complete = false;
     public bool isTask3Complete = false;
+    public bool canAttack = true;
+    public float timeToAttack = 30f;
 
     public GameObject[] players;
     GameObject giocatorePiuVicino;
@@ -61,13 +60,16 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     private void Start()
     {
         player = gameObject;
-        rb = GetComponent<Rigidbody>();
         gameManager = FindObjectOfType<GameManager>();
+        rb = GetComponent<Rigidbody>();
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
 
         isTask1Complete = false;
         isTask2Complete = false;
         isTask3Complete = false;
         hasCountedTasks = false;
+        canAttack = true;
 
         if (!photonView.IsMine)
         {
@@ -156,24 +158,46 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
+        if (!canAttack)
+        {
+            timeToAttack -= Time.deltaTime;
+            textToKill.text = timeToAttack.ToString("F0") + ": To kill";
+            Debug.Log("Sto decrementando il timer" + timeToAttack);
+        }
+
+        if (timeToAttack <= 0f)
+        {
+            canAttack = true;
+            timeToAttack = 30f;
+            textToKill.text = "You can kill";
+        }
+
         if (isAssassin == true)
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(0) && canAttack == true)
             {
                 Attack();
                 Debug.Log("isDead =" + isDead);
                 Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
+                Debug.Log("Hai cliccato, inizio a decrementare il timer");
             }
         }
     }
 
+ 
     private void FixedUpdate()
     {
-        if (GameManager.Instance.task1.hasPlayed && GameManager.Instance.canPlay == false || GameManager.Instance.task2.canDisable == true || isPanel1Active == true)
+        if (!photonView.IsMine || rb == null) return;
+
+        if (GameManager.Instance == null || GameManager.Instance.task1 == null || GameManager.Instance.task2 == null)
+            return;
+
+        if ((GameManager.Instance.task1.hasPlayed && !GameManager.Instance.canPlay) ||
+            GameManager.Instance.task2.canDisable ||
+            isPanel1Active)
         {
             return;
         }
-        if (!photonView.IsMine) return;
 
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
@@ -245,6 +269,8 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         Player_Controller target = null;
         float minDistance = distanzaMinima;
 
+        canAttack = false;
+
         foreach (Player_Controller other in FindObjectsOfType<Player_Controller>())
         {
             if (other == this || other.isDead || other.isAssassin) continue;
@@ -279,10 +305,8 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (isDead) return;
         isDead = true;
-        gameObject.tag = "Spectator";
         Debug.Log("Sei stato ucciso!");
         GameManager.Instance.PlayerDied();
-
         if (photonView.IsMine)
         {
             photonView.RPC("HidePlayerBody", RpcTarget.AllBuffered);
@@ -301,8 +325,19 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
                 if (comp != this) comp.enabled = false;
             }
 
-            StartCoroutine(FollowOtherPlayerAsCamera());
+            if (!isAssassin && hasCountedTasks)
+            {
+                GameManager.Instance.photonView.RPC("SubtractTasksForDeadPlayer", RpcTarget.MasterClient);
+            }
+
+            StartCoroutine(LeaveRoomAfterDelay(1.5f));
         }
+    }
+
+    private IEnumerator LeaveRoomAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        PhotonNetwork.LeaveRoom();
     }
 
     [PunRPC]
@@ -366,66 +401,6 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
         {
             Debug.LogError("mainCamera ancora non trovata!");
         }
-    }
-
-    private IEnumerator FollowOtherPlayerAsCamera()
-    {
-        yield return new WaitForSeconds(0.5f);
-
-        if (mainCamera == null)
-        {
-            mainCamera = GetComponentInChildren<Camera>();
-        }
-
-        Player_Controller[] players = FindObjectsOfType<Player_Controller>();
-        foreach (var p in players)
-        {
-            if (p != this && !p.isDead)
-            {
-                Debug.Log("[Spettatore] Sto seguendo il player " + p.photonView.Owner.NickName);
-                mainCamera.enabled = true;
-                mainCamera.gameObject.SetActive(true);
-                mainCamera.transform.SetParent(null);
-
-                StartCoroutine(FollowTarget(p.transform));
-                yield break;
-            }
-        }
-
-        Debug.LogWarning("[Spettatore] Nessun giocatore vivo trovato.");
-        mainCamera.transform.position = new Vector3(0, 20, 0);
-        mainCamera.transform.rotation = Quaternion.Euler(90, 0, 0);
-        mainCamera.enabled = true;
-    }
-
-
-    private IEnumerator FollowTarget(Transform target)
-    {
-        if (target == null || mainCamera == null)
-        {
-            Debug.LogError("FollowTarget: target o camera mancante");
-            yield break;
-        }
-
-        Vector3 offset = new Vector3(0, 6, -6);
-        float smoothSpeed = 6f;
-
-        Vector3 startPos = target.position + offset;
-        mainCamera.transform.position = startPos;
-        mainCamera.transform.LookAt(target);
-
-        while (target != null)
-        {
-            Vector3 desiredPos = target.position + offset;
-            Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, desiredPos, Time.deltaTime * smoothSpeed);
-
-            mainCamera.transform.position = smoothedPos;
-            mainCamera.transform.LookAt(target);
-
-            yield return null;
-        }
-
-        Debug.LogWarning("FollowTarget terminato: target distrutto o nullo.");
     }
 
     [PunRPC]

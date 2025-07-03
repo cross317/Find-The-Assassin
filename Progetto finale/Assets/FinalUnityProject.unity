@@ -13010,7 +13010,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5728dee3b599c414d992b00db446dbcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  task1Prefab: {fileID: 5194687044560685866, guid: afeb042fb64390d4a80ba18a39f9115a, type: 3}
+  task1Prefab: {fileID: 5194687044560685866, guid: b95aa40f093c5c149a1e3275409b3d5f, type: 3}
 --- !u!43 &82399457
 Mesh:
   m_ObjectHideFlags: 0
@@ -52071,7 +52071,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ddcb153ec2b285643b12e439021b513f, type: 2}
+  - {fileID: 2100000, guid: 6324b6b4d671ec64c9915445c93cdaf6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -284565,7 +284565,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ddcb153ec2b285643b12e439021b513f, type: 2}
+  - {fileID: 2100000, guid: 6324b6b4d671ec64c9915445c93cdaf6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -293220,7 +293220,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ddcb153ec2b285643b12e439021b513f, type: 2}
+  - {fileID: 2100000, guid: 6324b6b4d671ec64c9915445c93cdaf6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

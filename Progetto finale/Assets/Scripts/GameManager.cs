@@ -76,6 +76,11 @@ public class GameManager : MonoBehaviourPunCallbacks
                 howManyTasksToWin = 9;
                 break;
         }
+        if (PhotonNetwork.IsMasterClient && totalTasks >= howManyTasksToWin && !gameEnded)
+        {
+            gameEnded = true;
+            photonView.RPC("ShowInnocentsWon", RpcTarget.All);
+        }
     }
 
     [PunRPC]
@@ -231,5 +236,12 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             p.photonView.RPC("ResetPlayer", p.photonView.Owner);
         }
+    }
+
+    [PunRPC]
+    public void SubtractTasksForDeadPlayer()
+    {
+        totalTasks -= 3;
+        totalTasks = Mathf.Max(0, totalTasks);
     }
 }
