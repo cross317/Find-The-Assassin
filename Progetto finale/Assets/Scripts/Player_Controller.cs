@@ -107,6 +107,7 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             player.tag = "Assassin";
             canDoTasks = false;
             missionsPanel.SetActive(false);
+            textToKill.text = "You can kill";
             Debug.Log("Ruolo attuale: Assassin");
         }
         else
@@ -158,14 +159,14 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        if (!canAttack)
+        if (!canAttack && isAssassin == true)
         {
             timeToAttack -= Time.deltaTime;
             textToKill.text = timeToAttack.ToString("F0") + ": To kill";
             Debug.Log("Sto decrementando il timer" + timeToAttack);
         }
 
-        if (timeToAttack <= 0f)
+        if (timeToAttack <= 0f && isAssassin == true)
         {
             canAttack = true;
             timeToAttack = 30f;
@@ -174,12 +175,18 @@ public class Player_Controller : MonoBehaviourPunCallbacks, IPunObservable
 
         if (isAssassin == true)
         {
+            panelForAssassinKill.SetActive(true);
             if (Input.GetMouseButtonDown(0) && canAttack == true)
             {
                 Attack();
                 Debug.Log("isDead =" + isDead);
                 Debug.Log("Ruolo attuale: " + (isAssassin ? "Assassin" : "Player"));
                 Debug.Log("Hai cliccato, inizio a decrementare il timer");
+            }
+            
+            if (canAttack == true)
+            {
+                textToKill.text = "You can kill";
             }
         }
     }

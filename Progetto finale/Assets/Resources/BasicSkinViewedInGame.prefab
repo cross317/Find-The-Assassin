@@ -325,10 +325,10 @@ RectTransform:
   m_Father: {fileID: 1234655664378724800}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -50}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5290760777919088915
 CanvasRenderer:
@@ -358,9 +358,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '
-
-'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -103133,8 +103131,8 @@ MonoBehaviour:
   panelForNotHavingGasCan: {fileID: 2301022720033065438}
   mainCamera: {fileID: 3178676357316259746}
   distanzaMinima: 50
-  panelForAssassinKill: {fileID: 0}
-  textToKill: {fileID: 0}
+  panelForAssassinKill: {fileID: 3375341300403084673}
+  textToKill: {fileID: 1742568870804268065}
   isCollidingWithTask: 0
   isCollidingWithTask2: 0
   isCollidingWithCan: 0
@@ -103227,10 +103225,10 @@ RectTransform:
   m_Father: {fileID: 6376102122668182521}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -50}
+  m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1516105065704950195
 CanvasRenderer:
