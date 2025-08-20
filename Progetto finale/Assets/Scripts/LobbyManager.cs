@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
@@ -6,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using ExitGames.Client.Photon;
 
 public class LobbyManager : MonoBehaviourPunCallbacks
 {
@@ -23,6 +23,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable();
+        props["isGameStarted"] = true;
+
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+
         PhotonNetwork.LoadLevel("FinalUnityProject");
     }
 

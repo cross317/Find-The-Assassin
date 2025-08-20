@@ -1,10 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
+using UnityEngine.ProBuilder.MeshOperations;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.Windows;
 
 public class MenuManager : MonoBehaviourPunCallbacks
 {
@@ -12,10 +15,15 @@ public class MenuManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject primaryPanel;
     [SerializeField] GameObject secondaryPanel;
     [SerializeField] TMP_Text playerName;
+    [SerializeField] GameObject infoPanel;
+    [SerializeField] GameObject settingsPanel;
+    [SerializeField] TMP_InputField input_Field;
 
     public float timer = 5f;
     public bool canStartTimer = false;
     private bool isConnectedToMaster = false;
+    public static string savedName = "";
+    public static bool isNameChanged = false;
 
     public void Start()
     {   
@@ -23,6 +31,13 @@ public class MenuManager : MonoBehaviourPunCallbacks
         secondaryPanel.SetActive(false);
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.GameVersion = "1";
+        if (isNameChanged == false)
+        {
+            PhotonNetwork.NickName = "Player" + Random.Range(1, 9999);
+            savedName = PhotonNetwork.NickName;
+            playerName.text = "Your name is:" + savedName;
+        }
+
         if (!PhotonNetwork.IsConnected)
         {
             PhotonNetwork.ConnectUsingSettings();
@@ -44,6 +59,10 @@ public class MenuManager : MonoBehaviourPunCallbacks
             CreateRoom();
             timer = 5f;
         }
+        if (input_Field.text != "")
+        {
+            ChangeName();
+        }
     }
 
     public void CreateRoom()
@@ -53,20 +72,29 @@ public class MenuManager : MonoBehaviourPunCallbacks
             Debug.LogWarning("Non ancora connesso");
             return;
         }
-        PhotonNetwork.CreateRoom(null, new Photon.Realtime.RoomOptions { MaxPlayers = 4 });
+        ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable();
+        props["isGameStarted"] = false;
+
+        RoomOptions options = new RoomOptions();
+        options.MaxPlayers = 4;
+        options.IsVisible = true;
+        options.IsOpen = true;
+        options.CustomRoomProperties = props;
+        options.CustomRoomPropertiesForLobby = new string[] { "isGameStarted" };
+
+        PhotonNetwork.CreateRoom(null, options);
     }
 
     public override void OnJoinedLobby()
     {
         Debug.Log("Sei entrato nella lobby. Ora puoi unirti a una stanza.");
-        PhotonNetwork.JoinRandomRoom();
     }
 
     public void JoinRoom()
     {
         if (PhotonNetwork.IsConnectedAndReady)
         {
-            PhotonNetwork.JoinLobby(); 
+            PhotonNetwork.JoinLobby();
         }
         else
         {
@@ -74,16 +102,48 @@ public class MenuManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        if (roomList.Count == 0)
+        {
+            Debug.Log("Nessuna stanza disponibile.");
+        }
+        else
+        {
+            Debug.Log("Stanze disponibili:");
+            foreach (RoomInfo room in roomList)
+            {
+                if (room.CustomProperties.TryGetValue("isGameStarted", out object started) && (bool)started)
+                {
+                    Debug.Log("Stanza già in corso, ignorata: " + room.Name);
+                    continue;
+                }
+
+                Debug.Log("Stanza valida: " + room.Name);
+            }
+        }
+    }
+
     public override void OnJoinedRoom()
     {
         Debug.Log("Sei entrato nella stanza");
-        Debug.Log("Sei entrato nella lobby, Ora puoi unirti a una stanza");
+
         if (PhotonNetwork.MasterClient == null || PhotonNetwork.PlayerList.Length == 0)
         {
-            Debug.LogWarning("Stanza vuota, esco...");
+            Debug.Log("Stanza vuota o senza master, la chiudo.");
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+            PhotonNetwork.CurrentRoom.IsVisible = false;
             PhotonNetwork.LeaveRoom();
             return;
         }
+
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("isGameStarted", out object started) && (bool)started)
+        {
+            Debug.Log("Partita già in corso, non posso entrare.");
+            PhotonNetwork.LeaveRoom();
+            return;
+        }
+
         SceneManager.LoadScene("Lobby");
     }
 
@@ -101,9 +161,6 @@ public class MenuManager : MonoBehaviourPunCallbacks
 
         if (string.IsNullOrEmpty(PhotonNetwork.NickName))
             PhotonNetwork.NickName = "Player" + Random.Range(1, 9999);
-
-        if (playerName != null)
-            playerName.text = "Your name is:\n" + PhotonNetwork.NickName;
     }
 
     public void AggiornaTimerUi()
@@ -118,4 +175,33 @@ public class MenuManager : MonoBehaviourPunCallbacks
         secondaryPanel.SetActive(true);
         canStartTimer = true;
     }
+
+    public void ChangeName()
+    {
+        PhotonNetwork.NickName = input_Field.text;
+        savedName = PhotonNetwork.NickName;
+        if (playerName != null)
+            playerName.text = "Your name is:\n" + PhotonNetwork.NickName;
+    }
+
+    public void ActiveInfoPanel()
+    {
+        infoPanel.SetActive(true);
+    }
+    
+    public void DeactivateInfoPanel()
+    {
+        infoPanel.SetActive(false);
+    }
+
+    public void ActiveSettingsPanel()
+    {
+        settingsPanel.SetActive(true);
+    }
+
+    public void DeactivateSettingsPanel()
+    {
+        settingsPanel.SetActive(false);   
+    }
+
 }
